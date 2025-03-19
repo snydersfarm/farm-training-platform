@@ -5,14 +5,6 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', 'localhost:3001']
     }
   },
-  eslint: {
-    // This disables ESLint during build to avoid the errors we're encountering
-    ignoreDuringBuilds: true
-  },
-  typescript: {
-    // This ignores TypeScript errors during build
-    ignoreBuildErrors: true
-  },
   webpack: (config) => {
     config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx'];
     config.resolve.fallback = {
