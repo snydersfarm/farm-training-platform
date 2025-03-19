@@ -29,11 +29,6 @@ export function MainNav() {
     {
       name: 'Modules',
       href: '/modules',
-      icon: <BookOpen className="h-5 w  />
-    },
-    {
-      name: 'Modules',
-      href: '/modules',
       icon: <BookOpen className="h-5 w-5 mr-2" />
     },
     {

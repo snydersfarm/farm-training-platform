@@ -13,7 +13,7 @@ const trainingModules = [
     title: 'Farm Equipment Safety',
     description: 'Learn essential safety protocols for operating farm equipment and machinery.',
     duration: '2 hours',
-    lessons: 5,
+    lessonCount: 5,
     level: 'Beginner',
     category: 'Safety',
     image: '/placeholder.svg?height=400&width=800',
@@ -74,7 +74,7 @@ const trainingModules = [
 ]
 
 export default function ModuleDetailPage({ params }: { params: { id: string } }) {
-  const moduleId = parseInt(params.id)
+  const moduleId = Number.parseInt(params.id, 10)
   const module = trainingModules.find(m => m.id === moduleId)
   
   if (!module) {
