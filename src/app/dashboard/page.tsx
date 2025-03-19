@@ -2,9 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth-config";
 import Link from "next/link";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -13,7 +11,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch modules from the database
+  // Fetch modules from the database using the singleton prisma client
   const modules = await prisma.module.findMany({
     orderBy: {
       order: 'asc'
