@@ -1,29 +1,31 @@
-import { Inter } from "next/font/google";
-import { getServerSession } from "next-auth";
-import { SessionProvider } from "@/components/SessionProvider";
-import "./globals.css";
+import './globals.css'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import { ThemeProvider } from '@/components/theme-provider'
+import { MainNav } from '@/components/main-nav'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: "Farm Training Platform",
-  description: "Learn farming techniques and best practices",
-};
+export const metadata: Metadata = {
+  title: 'Farm Training Platform',
+  description: 'Comprehensive training for modern farming',
+}
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const session = await getServerSession();
-  
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <div className="flex min-h-screen flex-col">
+            <MainNav />
+            <main className="flex-1">{children}</main>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }
