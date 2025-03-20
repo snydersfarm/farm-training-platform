@@ -130,14 +130,14 @@ const trainingModules = [
   }
 ]
 
-// Correctly type the params for Next.js App Router
-interface ModuleDetailPageProps {
-  params: {
-    id: string
-  }
+// Type definition that matches Next.js App Router requirements
+// Use this exact type definition which is compatible with Next.js PageProps
+type Props = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export default function ModuleDetailPage({ params }: ModuleDetailPageProps) {
+export default function ModuleDetailPage({ params }: Props) {
   const moduleId = Number.parseInt(params.id, 10)
   const module = trainingModules.find(m => m.id === moduleId)
   
