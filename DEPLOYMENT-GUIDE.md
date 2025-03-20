@@ -10,6 +10,7 @@
    - Downgraded React from 19.0.0 to 18.2.0 for better stability
    - Removed duplicate authentication libraries (kept @next-auth/prisma-adapter, removed @auth/prisma-adapter)
    - Standardized on bcryptjs (removed bcrypt)
+   - Removed dependencies on external UI libraries like lucide-react, using inline SVG components instead
 
 3. **Next.js Configuration**
    - Removed error suppression (eslint.ignoreDuringBuilds and typescript.ignoreBuildErrors)
@@ -75,4 +76,4 @@
 - **Prisma Client Generation Errors**: Make sure Prisma is generating during the build process. This is already configured in your build command.
 - **Database Connection Issues**: Verify your DATABASE_URL is correct and the database is accessible from Vercel.
 - **Authentication Errors**: Check that all Firebase environment variables are set correctly.
-- **Build Errors**: If you encounter TypeScript or ESLint errors, fix them rather than suppressing them. 
+- **Build Errors**: If you encounter TypeScript or ESLint errors, fix them rather than suppressing them.
