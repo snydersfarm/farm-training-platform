@@ -8,10 +8,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Using environment variable to determine database provider
-// Set DATABASE_PROVIDER=postgresql for both development and production
+// Using PostgreSQL for both development and production environments
 datasource db {
-  provider = env("DATABASE_PROVIDER")
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

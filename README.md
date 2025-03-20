@@ -38,10 +38,9 @@ A Next.js application that provides training modules for farm workers.
 
 ## Database Configuration
 
-The platform is configured to use PostgreSQL for both development and production environments to ensure consistency. Make sure the following environment variables are set:
+The platform is configured to use PostgreSQL for both development and production environments to ensure consistency. Make sure the following environment variable is set:
 
 ```
-DATABASE_PROVIDER=postgresql
 DATABASE_URL=postgresql://username:password@hostname:port/database
 ```
 
@@ -65,7 +64,6 @@ For local development, you can use a local PostgreSQL instance or a cloud provid
 
    ```
    # Database
-   DATABASE_PROVIDER=postgresql
    DATABASE_URL=postgresql://username:password@hostname:port/database
    
    # NextAuth

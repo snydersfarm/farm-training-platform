@@ -37,11 +37,10 @@
      - Updated seed file with comprehensive sample data
 
 8. **PostgreSQL configuration but SQLite in development**: The README mentions using SQLite in development but PostgreSQL in production. This could lead to development/production parity issues.
-   - ✅ Fixed: Updated the schema to use PostgreSQL consistently in both environments:
-     - Added DATABASE_PROVIDER environment variable
+   - ✅ Fixed: Updated to use PostgreSQL consistently:
+     - Set PostgreSQL as the direct provider in schema.prisma
      - Updated README with clear database configuration instructions
      - Created .env.example template with recommended settings
-     - Modified schema.prisma to use the provider from environment variables
      - Revised database migration documentation
 
 9. **Missing API endpoint documentation**: There's an API directory but no clear documentation of available endpoints.
