@@ -4,6 +4,7 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "env": {
+    "DATABASE_URL": "${DATABASE_URL}",
     "NEXTAUTH_URL": "https://farm-training-platform.vercel.app",
     "NEXTAUTH_SECRET": "${NEXTAUTH_SECRET}",
     "NEXT_PUBLIC_FIREBASE_API_KEY": "${NEXT_PUBLIC_FIREBASE_API_KEY}",

@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// This simplified middleware will allow public access
 export function middleware(request: NextRequest) {
-  // Simplified middleware that doesn't block access to dashboard
-  // This is temporary for debugging purposes
+  // Allow all requests to proceed
   return NextResponse.next()
 }
 
+// Only apply middleware to routes that should be protected
 export const config = {
-  matcher: ['/', '/login', '/dashboard/:path*'],
+  matcher: ['/dashboard/:path*']
 }

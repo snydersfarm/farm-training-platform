@@ -2,146 +2,159 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Clock, BookOpen, Award, ArrowRight } from "lucide-react"
+
+// Define SVG icon components to replace lucide-react
+const ClockIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+)
+
+const BookOpenIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </svg>
+)
+
+const AwardIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="8" r="7" />
+    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+  </svg>
+)
+
+const ArrowRightIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+)
 
 // This would come from your database in a real implementation
 const trainingModules = [
   {
     id: 1,
     title: "Farm Equipment Safety",
-    description: "Learn essential safety protocols for operating farm equipment and machinery.",
-    duration: "2 hours",
-    lessons: 5,
+    description: "Learn essential safety practices for operating farm equipment and machinery.",
+    duration: "3 hours",
+    lessons: 7,
     level: "Beginner",
     category: "Safety",
-    image: "/placeholder.svg?height=200&width=400",
+    progress: 40
   },
   {
     id: 2,
-    title: "Crop Rotation Techniques",
-    description: "Master the art of crop rotation to improve soil health and increase yields.",
-    duration: "3 hours",
+    title: "Tractor Operation Safety",
+    description: "Comprehensive training on safe tractor operation and maintenance procedures.",
+    duration: "4 hours",
     lessons: 8,
     level: "Intermediate",
-    category: "Crops",
-    image: "/placeholder.svg?height=200&width=400",
+    category: "Safety",
+    progress: 20
   },
   {
     id: 3,
     title: "Livestock Management",
-    description: "Comprehensive guide to caring for and managing farm animals effectively.",
+    description: "Essential practices for managing and caring for livestock on your farm.",
     duration: "4 hours",
     lessons: 10,
-    level: "Advanced",
+    level: "Intermediate",
     category: "Livestock",
-    image: "/placeholder.svg?height=200&width=400",
+    progress: 0
   },
   {
     id: 4,
     title: "Sustainable Farming Practices",
-    description: "Explore environmentally friendly approaches to modern farming.",
+    description: "Learn environmentally-friendly farming techniques and sustainable agriculture methods.",
     duration: "3 hours",
     lessons: 7,
-    level: "Intermediate",
+    level: "Advanced",
     category: "Sustainability",
-    image: "/placeholder.svg?height=200&width=400",
+    progress: 0
   },
   {
     id: 5,
-    title: "Farm Business Management",
-    description: "Learn how to run the business side of your farm efficiently and profitably.",
-    duration: "5 hours",
-    lessons: 12,
-    level: "Advanced",
-    category: "Business",
-    image: "/placeholder.svg?height=200&width=400",
+    title: "Crop Rotation Techniques",
+    description: "Improve soil health and crop yields with effective rotation strategies.",
+    duration: "2.5 hours",
+    lessons: 6,
+    level: "Intermediate",
+    category: "Crops",
+    progress: 0
   },
   {
     id: 6,
     title: "Irrigation Systems",
-    description: "Understanding and implementing effective water management systems.",
+    description: "Setting up and maintaining efficient irrigation systems for your farm.",
     duration: "2.5 hours",
     lessons: 6,
     level: "Intermediate",
-    category: "Infrastructure",
-    image: "/placeholder.svg?height=200&width=400",
-  },
+    category: "Equipment",
+    progress: 0
+  }
 ]
 
 export default function ModulesPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Training Modules</h1>
-          <p className="text-gray-500 mt-2">Explore our comprehensive farm training curriculum</p>
-        </div>
-        <div className="flex gap-4">
+        <h1 className="text-3xl font-bold">Training Modules</h1>
+        <div className="flex space-x-2">
           <Button variant="outline">Filter</Button>
           <Button variant="outline">Sort</Button>
         </div>
       </div>
-
-      {/* Category filters */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        <Badge className="px-3 py-1 cursor-pointer bg-primary">All</Badge>
-        <Badge className="px-3 py-1 cursor-pointer" variant="outline">
-          Safety
-        </Badge>
-        <Badge className="px-3 py-1 cursor-pointer" variant="outline">
-          Crops
-        </Badge>
-        <Badge className="px-3 py-1 cursor-pointer" variant="outline">
-          Livestock
-        </Badge>
-        <Badge className="px-3 py-1 cursor-pointer" variant="outline">
-          Sustainability
-        </Badge>
-        <Badge className="px-3 py-1 cursor-pointer" variant="outline">
-          Business
-        </Badge>
-        <Badge className="px-3 py-1 cursor-pointer" variant="outline">
-          Infrastructure
-        </Badge>
-      </div>
-
-      {/* Modules grid */}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {trainingModules.map((module) => (
-          <Card key={module.id} className="overflow-hidden flex flex-col">
-            <div className="relative h-48 w-full">
-              <img src={module.image || "/placeholder.svg"} alt={module.title} className="object-cover w-full h-full" />
-              <Badge className="absolute top-3 right-3">{module.category}</Badge>
-            </div>
-            <CardHeader>
-              <CardTitle>{module.title}</CardTitle>
-              <CardDescription>{module.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="flex items-center gap-4 text-sm text-gray-500">
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-1" />
-                  {module.duration}
+          <Link href={`/modules/${module.id}`} key={module.id} className="block group">
+            <Card className="h-full transition-all hover:shadow-md">
+              <CardHeader>
+                <Badge className="w-fit mb-2">{module.category}</Badge>
+                <CardTitle>{module.title}</CardTitle>
+                <CardDescription>{module.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <ClockIcon className="h-4 w-4 mr-1" />
+                    <span>{module.duration}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <BookOpenIcon className="h-4 w-4 mr-1" />
+                    <span>{module.lessons} lessons</span>
+                  </div>
+                  <div className="flex items-center">
+                    <AwardIcon className="h-4 w-4 mr-1" />
+                    <span>{module.level}</span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <BookOpen className="h-4 w-4 mr-1" />
-                  {module.lessons} lessons
-                </div>
-                <div className="flex items-center">
-                  <Award className="h-4 w-4 mr-1" />
-                  {module.level}
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Link href={`/modules/${module.id}`} className="w-full">
-                <Button className="w-full">
-                  Start Learning
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                
+                {module.progress > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Progress</span>
+                      <span>{module.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full" 
+                        style={{ width: `${module.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full group-hover:bg-primary-600">
+                  {module.progress > 0 ? 'Continue' : 'Start'} Module
+                  <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
-              </Link>
-            </CardFooter>
-          </Card>
+              </CardFooter>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>
