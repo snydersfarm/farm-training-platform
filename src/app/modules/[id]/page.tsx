@@ -130,7 +130,14 @@ const trainingModules = [
   }
 ]
 
-export default function ModuleDetailPage({ params }: { params: { id: string } }) {
+// Correctly type the params for Next.js App Router
+interface ModuleDetailPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function ModuleDetailPage({ params }: ModuleDetailPageProps) {
   const moduleId = Number.parseInt(params.id, 10)
   const module = trainingModules.find(m => m.id === moduleId)
   
