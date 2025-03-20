@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "// Using npm run build directly since it already includes prisma generate": true,
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": "nextjs",
