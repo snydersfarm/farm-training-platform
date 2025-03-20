@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { useSession, signOut } from 'next-auth/react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +50,14 @@ const CalendarIcon = () => (
   </svg>
 )
 
+const AdminIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2">
+    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"></path>
+    <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"></path>
+    <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
+  </svg>
+)
+
 const SettingsIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4">
     <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
@@ -82,7 +91,9 @@ const XIcon = () => (
 export function MainNav() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  
+  const { data: session } = useSession()
+
+  // Base routes available to all authenticated users
   const routes = [
     {
       name: 'Dashboard',
@@ -105,6 +116,19 @@ export function MainNav() {
       icon: <CalendarIcon />
     },
   ]
+  
+  // Admin route - only shown to admin users
+  if (session?.user?.role === 'admin') {
+    routes.push({
+      name: 'Admin',
+      href: '/admin',
+      icon: <AdminIcon />
+    })
+  }
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/' })
+  }
   
   return (
     <header className="sticky top-0 z-40 border-b bg-background">
@@ -139,17 +163,22 @@ export function MainNav() {
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder.svg" alt="User" />
-                  <AvatarFallback>US</AvatarFallback>
+                  <AvatarFallback>{session?.user?.name?.substring(0, 2) || 'U'}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">User Name</p>
+                  <p className="text-sm font-medium leading-none">{session?.user?.name || 'User'}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    user@example.com
+                    {session?.user?.email || 'user@example.com'}
                   </p>
+                  {session?.user?.role === 'admin' && (
+                    <span className="mt-1 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                      Admin
+                    </span>
+                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -157,7 +186,7 @@ export function MainNav() {
                 <SettingsIcon />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut}>
                 <LogOutIcon />
                 <span>Log out</span>
               </DropdownMenuItem>
