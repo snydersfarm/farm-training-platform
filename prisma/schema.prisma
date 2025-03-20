@@ -1,22 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
-  // Enable edge compatibility (for Vercel Edge functions if needed)
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
-// Using PostgreSQL for both development and production environments
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  // Recommended for Serverless/Vercel environments
-  directUrl = env("DIRECT_URL")
-  // Connection pooling configuration
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  directUrl    = env("DIRECT_URL")
   relationMode = "foreignKeys"
 }
 
@@ -38,7 +28,7 @@ model User {
   position          String?        // Job position
   hireDate          DateTime?      // When the worker was hired
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  updatedAt         DateTime       @default(now()) @updatedAt
   accounts          Account[]
   sessions          Session[]
   progress          Progress[]
@@ -60,8 +50,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -96,25 +85,25 @@ model Category {
 }
 
 model Module {
-  id              String         @id @default(cuid())
-  title           String         @unique
-  description     String
-  content         String         // Overview content
-  categoryId      String?        // Optional category
-  category        Category?      @relation(fields: [categoryId], references: [id])
-  requiredMinutes Int            @default(0) // Estimated time to complete in minutes
-  difficulty      String         @default("Beginner") // Beginner, Intermediate, Advanced
-  isPublished     Boolean        @default(false)
-  isFeatured      Boolean        @default(false)
-  requiresVerification Boolean   @default(false) // Whether completion needs manager verification
-  order           Int            @default(0)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  progress        Progress[]
-  lessons         Lesson[]
-  prerequisites   ModulePrerequisite[] @relation("ModuleToPrerequisite")
-  requiredFor     ModulePrerequisite[] @relation("PrerequisiteToModule")
-  certifications  Certification[]
+  id                 String              @id @default(cuid())
+  title              String              @unique
+  description        String
+  content            String              // Overview content
+  categoryId         String?             // Optional category
+  category           Category?           @relation(fields: [categoryId], references: [id])
+  requiredMinutes    Int                 @default(0) // Estimated time to complete in minutes
+  difficulty         String              @default("Beginner") // Beginner, Intermediate, Advanced
+  isPublished        Boolean             @default(false)
+  isFeatured         Boolean             @default(false)
+  requiresVerification Boolean           @default(false) // Whether completion needs manager verification
+  order              Int                 @default(0)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  progress           Progress[]
+  lessons            Lesson[]
+  prerequisites      ModulePrerequisite[] @relation("ModuleToPrerequisite")
+  requiredFor        ModulePrerequisite[] @relation("PrerequisiteToModule")
+  certifications     Certification[]
 }
 
 // Prerequisites for modules

@@ -5,9 +5,13 @@ import { PrismaClient } from '@prisma/client'
 // Learn more: 
 // https://pris.ly/d/help/next-js-best-practices
 
-// Validate DATABASE_URL before initializing Prisma
+// Validate DATABASE_URL and DIRECT_URL before initializing Prisma
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set')
+}
+
+if (!process.env.DIRECT_URL) {
+  console.warn('DIRECT_URL environment variable is not set - this may cause issues with migrations')
 }
 
 // Check if the URL is valid
@@ -102,7 +106,7 @@ prisma.$use(async (params, next) => {
 });
 
 // Add health check method to prisma client
-prisma.$extends({
+(prisma as any).$extends({
   model: {
     $allModels: {
       async isHealthy() {

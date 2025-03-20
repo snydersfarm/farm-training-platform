@@ -3,8 +3,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    // Check if database is healthy using our new method
-    const isDbHealthy = await prisma.$allModels.isHealthy();
+    // Simple database health check with a raw query
+    const result = await prisma.$queryRaw`SELECT 1 as "connection_test"`;
+    const isDbHealthy = Array.isArray(result) && result.length > 0;
     
     if (isDbHealthy) {
       return NextResponse.json({
@@ -28,4 +29,4 @@ export async function GET() {
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }
-} 
+}
