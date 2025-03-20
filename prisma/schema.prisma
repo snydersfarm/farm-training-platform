@@ -6,12 +6,18 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Enable edge compatibility (for Vercel Edge functions if needed)
+  previewFeatures = ["driverAdapters"]
 }
 
 // Using PostgreSQL for both development and production environments
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Recommended for Serverless/Vercel environments
+  directUrl = env("DIRECT_URL")
+  // Connection pooling configuration
+  relationMode = "foreignKeys"
 }
 
 enum UserRole {
