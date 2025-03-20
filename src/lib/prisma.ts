@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { getPrismaClient, withPrisma } from '../../prisma/connection';
 
 // PrismaClient is attached to the `global` object in development to prevent
 // exhausting your database connection limit.
@@ -33,92 +34,30 @@ if (!isValidDatabaseUrl(process.env.DATABASE_URL)) {
   console.warn('DATABASE_URL format may be invalid. Please check your connection string.')
 }
 
-// Extract connection options
-const connectionOptions = {
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  // If we're in production, increase the connection timeout
-  ...(process.env.NODE_ENV === 'production' && {
-    connectionTimeout: 20000, // 20 seconds
-  })
-}
-
-const globalForPrisma = global as unknown as { prisma: PrismaClient }
+// Helper for delay between retries (with exponential backoff)
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Maximum number of retry attempts for database operations
 const MAX_RETRIES = 3;
 // Delay between retries (exponential backoff)
 const RETRY_DELAY_MS = 1000;
 
-// Initialize PrismaClient
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient(connectionOptions)
+// Get the prisma client from our optimized connection wrapper
+export const prisma = getPrismaClient();
 
-// Prevent multiple instances during hot reloading in development
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Export the withPrisma function for safe database operations
+export { withPrisma };
 
-// Helper for delay between retries (with exponential backoff)
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Enhanced middleware with retry logic for database operations
-prisma.$use(async (params, next) => {
-  let retries = 0;
-  
-  // Retry loop for handling connection issues
-  while (true) {
+// Health check method
+export async function checkDatabaseHealth(): Promise<boolean> {
+  return withPrisma(async (client) => {
     try {
-      return await next(params);
+      // Simple query to check database connection
+      const result = await client.$queryRaw`SELECT 1 as "connection_test"`;
+      return Array.isArray(result) && result.length > 0;
     } catch (error) {
-      // Specific error types that might be recoverable with a retry
-      const isConnectionError = 
-        error instanceof Error && (
-          error.message.includes('Connection pool') ||
-          error.message.includes('Can\'t reach database server') ||
-          error.message.includes('timeout') ||
-          error.message.includes('connection') ||
-          error.message.includes('ECONNREFUSED') ||
-          // Neon-specific errors
-          error.message.includes('connection timeout') ||
-          error.message.includes('Client has encountered a connection error')
-        );
-
-      // If it's a connection error and we haven't exceeded retries
-      if (isConnectionError && retries < MAX_RETRIES) {
-        retries++;
-        console.warn(`Database connection error, retrying (${retries}/${MAX_RETRIES}):`, error);
-        
-        // Wait with exponential backoff before retrying
-        await wait(RETRY_DELAY_MS * Math.pow(2, retries - 1));
-        continue;
-      }
-      
-      // For non-recoverable errors or if max retries exceeded
-      if (retries === MAX_RETRIES && isConnectionError) {
-        console.error(`Failed to connect to database after ${MAX_RETRIES} attempts`);
-      } else {
-        console.error('Database error:', error);
-      }
-      
-      // Re-throw the error after logging
-      throw error;
+      console.error('Database health check failed:', error);
+      return false;
     }
-  }
-});
-
-// Add health check method to prisma client
-(prisma as any).$extends({
-  model: {
-    $allModels: {
-      async isHealthy() {
-        try {
-          // Simple query to check database connection
-          await prisma.$queryRaw`SELECT 1`;
-          return true;
-        } catch (error) {
-          console.error('Database health check failed:', error);
-          return false;
-        }
-      }
-    }
-  }
-});
+  });
+}

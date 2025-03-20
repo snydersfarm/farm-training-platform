@@ -17,5 +17,18 @@
     "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID": "${NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID}",
     "ADMIN_EMAIL": "${ADMIN_EMAIL}"
   },
-  "cleanUrls": true
+  "cleanUrls": true,
+  "regions": ["iad1"],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "0 */2 * * *"
+    }
+  ]
 } 

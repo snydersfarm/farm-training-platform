@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { checkDatabaseHealth } from '@/lib/prisma';
+import { getDatabaseMetrics } from '@/lib/db-utils';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Simple database health check with a raw query
-    const result = await prisma.$queryRaw`SELECT 1 as "connection_test"`;
-    const isDbHealthy = Array.isArray(result) && result.length > 0;
+    // Use the database health check function
+    const isDbHealthy = await checkDatabaseHealth();
     
     if (isDbHealthy) {
+      // Get additional database metrics
+      const metrics = await getDatabaseMetrics();
+      
       return NextResponse.json({
         status: 'ok',
         database: 'connected',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        metrics
       }, { status: 200 });
     } else {
       return NextResponse.json({
