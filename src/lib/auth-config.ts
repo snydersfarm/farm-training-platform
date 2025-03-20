@@ -3,7 +3,8 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-const ADMIN_EMAIL = 'john@snydersfarm.com';
+// Use environment variable for admin email
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'john@snydersfarm.com';
 
 if (!process.env.NEXTAUTH_SECRET) {
   throw new Error('Please provide NEXTAUTH_SECRET environment variable');
@@ -23,6 +24,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          // Use Firebase Authentication for credential verification
           const userCredential = await signInWithEmailAndPassword(
             auth,
             credentials.email,
@@ -30,12 +32,19 @@ export const authOptions: NextAuthOptions = {
           );
 
           const user = userCredential.user;
+          
+          if (!user || !user.email) {
+            throw new Error('Authentication failed');
+          }
 
+          // Map Firebase user to NextAuth user
           return {
             id: user.uid,
             email: user.email,
-            name: user.displayName,
-            role: user.email === ADMIN_EMAIL ? 'admin' : 'user'
+            name: user.displayName || user.email.split('@')[0],
+            image: user.photoURL,
+            role: user.email === ADMIN_EMAIL ? 'admin' : 'user',
+            emailVerified: user.emailVerified
           };
         } catch (error: any) {
           console.error('Authentication error:', error);
@@ -53,17 +62,21 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
+      // Pass additional user properties to the token
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.emailVerified = user.emailVerified;
       }
       return token;
     },
     async session({ session, token }) {
+      // Pass token properties to the session
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as 'admin' | 'user';
+        session.user.emailVerified = token.emailVerified as boolean;
       }
       return session;
     }

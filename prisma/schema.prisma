@@ -8,21 +8,38 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Using environment variable to determine database provider
+// Set DATABASE_PROVIDER=postgresql for both development and production
 datasource db {
-  provider = "postgresql"
+  provider = env("DATABASE_PROVIDER")
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  MANAGER
+  ADMIN
+}
+
 model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email         String?        @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  accounts      Account[]
-  sessions      Session[]
-  progress      Progress[]
+  id                String         @id @default(cuid())
+  name              String?
+  email             String?        @unique
+  emailVerified     DateTime?
+  image             String?
+  password          String?
+  role              UserRole       @default(USER)
+  department        String?        // Farm department (e.g., Livestock, Crops, Equipment)
+  position          String?        // Job position
+  hireDate          DateTime?      // When the worker was hired
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  accounts          Account[]
+  sessions          Session[]
+  progress          Progress[]
+  lessonProgress    LessonProgress[]
+  certifications    Certification[]
+  notes             UserNote[]
 }
 
 model Account {
@@ -60,26 +77,127 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Module {
-  id          String         @id @default(cuid())
-  title       String         @unique
+// Categories to organize modules
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
   description String
-  content     String
-  order       Int           @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  progress    Progress[]
+  icon        String?   // Icon name or path
+  color       String?   // Color for UI display
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  modules     Module[]
 }
 
+model Module {
+  id              String         @id @default(cuid())
+  title           String         @unique
+  description     String
+  content         String         // Overview content
+  categoryId      String?        // Optional category
+  category        Category?      @relation(fields: [categoryId], references: [id])
+  requiredMinutes Int            @default(0) // Estimated time to complete in minutes
+  difficulty      String         @default("Beginner") // Beginner, Intermediate, Advanced
+  isPublished     Boolean        @default(false)
+  isFeatured      Boolean        @default(false)
+  requiresVerification Boolean   @default(false) // Whether completion needs manager verification
+  order           Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  progress        Progress[]
+  lessons         Lesson[]
+  prerequisites   ModulePrerequisite[] @relation("ModuleToPrerequisite")
+  requiredFor     ModulePrerequisite[] @relation("PrerequisiteToModule")
+  certifications  Certification[]
+}
+
+// Prerequisites for modules
+model ModulePrerequisite {
+  id              String   @id @default(cuid())
+  moduleId        String
+  prerequisiteId  String
+  module          Module   @relation("ModuleToPrerequisite", fields: [moduleId], references: [id], onDelete: Cascade)
+  prerequisite    Module   @relation("PrerequisiteToModule", fields: [prerequisiteId], references: [id], onDelete: Cascade)
+
+  @@unique([moduleId, prerequisiteId])
+}
+
+// Individual lessons within a module
+model Lesson {
+  id              String    @id @default(cuid())
+  title           String
+  content         String    // Lesson content or URL to content
+  moduleId        String
+  module          Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  type            String    @default("text") // text, video, quiz, interactive
+  duration        Int       @default(0) // Duration in minutes
+  order           Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  progress        LessonProgress[]
+  
+  @@unique([moduleId, order])
+}
+
+// Detailed tracking of module progress
 model Progress {
-  id        String   @id @default(cuid())
-  userId    String
-  moduleId  String
-  percentage Int     @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
-  module    Module   @relation(fields: [moduleId], references: [id])
+  id          String    @id @default(cuid())
+  userId      String
+  moduleId    String
+  percentage  Int       @default(0)
+  status      String    @default("not_started") // not_started, in_progress, completed, verified
+  startedAt   DateTime?
+  completedAt DateTime?
+  verifiedBy  String?   // User ID of manager who verified completion
+  verifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module      Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, moduleId])
+}
+
+// Detailed tracking of lesson progress
+model LessonProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  lessonId    String
+  completed   Boolean   @default(false)
+  timeSpent   Int       @default(0) // Time spent in seconds
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+// Certifications that users can earn
+model Certification {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  moduleId    String
+  module      Module    @relation(fields: [moduleId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issuedAt    DateTime  @default(now())
+  expiresAt   DateTime?
+  pdfUrl      String?   // URL to downloadable certificate
+
+  @@unique([userId, moduleId])
+}
+
+// Notes from managers/admins about users
+model UserNote {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authorId    String    // User ID of note author
+  content     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

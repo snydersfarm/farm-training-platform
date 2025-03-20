@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import EmailVerificationBanner from '@/components/EmailVerificationBanner'
 
 // Define SVG icon components to replace lucide-react
 const BookOpenIcon = ({ className }: { className?: string }) => (
@@ -48,6 +49,9 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Farm Training Dashboard</h1>
+      
+      {/* Email Verification Banner */}
+      <EmailVerificationBanner />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <DashboardCard 
