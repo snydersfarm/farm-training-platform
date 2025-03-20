@@ -1,4 +1,12 @@
 {
   "extends": ["next/core-web-vitals"],
-  "rules": {}
+  "ignorePatterns": ["node_modules/", ".next/", "*.js.bak"],
+  "rules": {},
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  }
 } 
