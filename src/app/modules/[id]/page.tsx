@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
 
 // Define SVG icon components to replace lucide-react imports
 const CheckCircleIcon = ({ className }: { className?: string }) => (
@@ -142,9 +143,9 @@ export default function ModuleDetailPage({
   params: PageParams;
 }) {
   const moduleId = Number.parseInt(params.id, 10)
-  const module = trainingModules.find(m => m.id === moduleId)
+  const moduleData = trainingModules.find(m => m.id === moduleId)
   
-  if (!module) {
+  if (!moduleData) {
     notFound()
   }
   
@@ -163,10 +164,12 @@ export default function ModuleDetailPage({
         {/* Main content - 2/3 width on desktop */}
         <div className="lg:col-span-2">
           <div className="relative rounded-lg overflow-hidden mb-6">
-            <img 
-              src={module.image || "/placeholder.svg"} 
-              alt={module.title} 
+            <Image 
+              src={moduleData.image || "/placeholder.svg"} 
+              alt={moduleData.title} 
               className="w-full h-64 object-cover"
+              width={800}
+              height={400}
             />
             <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
               <Button size="lg" className="rounded-full w-16 h-16 flex items-center justify-center">
@@ -175,8 +178,8 @@ export default function ModuleDetailPage({
             </div>
           </div>
           
-          <h1 className="text-3xl font-bold mb-2">{module.title}</h1>
-          <p className="text-gray-500 mb-6">{module.description}</p>
+          <h1 className="text-3xl font-bold mb-2">{moduleData.title}</h1>
+          <p className="text-gray-500 mb-6">{moduleData.description}</p>
           
           <Tabs defaultValue="overview" className="mb-8">
             <TabsList className="mb-4">
@@ -188,9 +191,9 @@ export default function ModuleDetailPage({
             
             <TabsContent value="overview">
               <div className="prose max-w-none">
-                <p>{module.overview}</p>
+                <p>{moduleData.overview}</p>
                 
-                <h3 className="text-xl font-semibold mt-6 mb-4">What You'll Learn</h3>
+                <h3 className="text-xl font-semibold mt-6 mb-4">What You&apos;ll Learn</h3>
                 <ul className="space-y-2">
                   <li className="flex items-start">
                     <CheckCircleIcon className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
@@ -218,7 +221,7 @@ export default function ModuleDetailPage({
             
             <TabsContent value="lessons">
               <div className="space-y-4">
-                {module.lessons.map((lesson, index) => (
+                {moduleData.lessons.map((lesson, index) => (
                   <Card key={lesson.id} className={lesson.completed ? "border-green-200 bg-green-50" : ""}>
                     <CardHeader className="p-4 flex flex-row items-center space-y-0">
                       <div className="flex-1">
@@ -244,7 +247,7 @@ export default function ModuleDetailPage({
             
             <TabsContent value="resources">
               <div className="space-y-4">
-                {module.resources.map((resource) => (
+                {moduleData.resources.map((resource) => (
                   <Card key={resource.id}>
                     <CardHeader className="p-4 flex flex-row items-center space-y-0">
                       <div className="flex-1">
@@ -285,17 +288,17 @@ export default function ModuleDetailPage({
             <CardContent>
               <div className="mb-2 flex justify-between items-center">
                 <span className="text-sm text-gray-500">
-                  {module.progress}% Complete
+                  {moduleData.progress}% Complete
                 </span>
                 <span className="text-sm text-gray-500">
-                  {module.lessons.filter(l => l.completed).length}/{module.lessons.length} Lessons
+                  {moduleData.lessons.filter(l => l.completed).length}/{moduleData.lessons.length} Lessons
                 </span>
               </div>
-              <Progress value={module.progress} className="h-2" />
+              <Progress value={moduleData.progress} className="h-2" />
               
               <div className="mt-6">
                 <Button className="w-full">
-                  {module.progress > 0 ? "Continue Learning" : "Start Learning"}
+                  {moduleData.progress > 0 ? "Continue Learning" : "Start Learning"}
                 </Button>
               </div>
             </CardContent>
@@ -311,21 +314,21 @@ export default function ModuleDetailPage({
                   <ClockIcon className="h-5 w-5 mr-3 text-gray-500" />
                   <div>
                     <p className="text-sm font-medium">Duration</p>
-                    <p className="text-sm text-gray-500">{module.duration}</p>
+                    <p className="text-sm text-gray-500">{moduleData.duration}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <BookOpenIcon className="h-5 w-5 mr-3 text-gray-500" />
                   <div>
                     <p className="text-sm font-medium">Lessons</p>
-                    <p className="text-sm text-gray-500">{module.lessons.length} lessons</p>
+                    <p className="text-sm text-gray-500">{moduleData.lessons.length} lessons</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <AwardIcon className="h-5 w-5 mr-3 text-gray-500" />
                   <div>
                     <p className="text-sm font-medium">Level</p>
-                    <p className="text-sm text-gray-500">{module.level}</p>
+                    <p className="text-sm text-gray-500">{moduleData.level}</p>
                   </div>
                 </div>
               </div>
@@ -338,17 +341,19 @@ export default function ModuleDetailPage({
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-4">
-                <img 
-                  src={module.instructor.avatar || "/placeholder.svg"} 
-                  alt={module.instructor.name} 
+                <Image 
+                  src={moduleData.instructor.avatar || "/placeholder.svg"} 
+                  alt={moduleData.instructor.name} 
                   className="h-12 w-12 rounded-full object-cover"
+                  width={48}
+                  height={48}
                 />
                 <div>
-                  <p className="font-medium">{module.instructor.name}</p>
-                  <p className="text-sm text-gray-500">{module.instructor.role}</p>
+                  <p className="font-medium">{moduleData.instructor.name}</p>
+                  <p className="text-sm text-gray-500">{moduleData.instructor.role}</p>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-gray-600">{module.instructor.bio}</p>
+              <p className="mt-4 text-sm text-gray-600">{moduleData.instructor.bio}</p>
             </CardContent>
           </Card>
         </div>
