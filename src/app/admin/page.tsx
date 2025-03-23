@@ -124,7 +124,7 @@ export default function AdminDashboard() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium">John Doe completed "Farm Equipment Safety"</p>
+                  <p className="font-medium">John Doe completed &quot;Farm Equipment Safety&quot;</p>
                   <p className="text-sm text-gray-500">1 hour ago</p>
                 </div>
               </div>
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium">Jane Smith started "Crop Rotation Techniques"</p>
+                  <p className="font-medium">Jane Smith started &quot;Crop Rotation Techniques&quot;</p>
                   <p className="text-sm text-gray-500">3 hours ago</p>
                 </div>
               </div>

@@ -138,7 +138,7 @@ export default function DashboardPage() {
                     <BookOpenIcon className="h-5 w-5 text-blue-500" />
                   </div>
                   <div>
-                    <p className="font-medium">Completed "Introduction to Farm Equipment Safety"</p>
+                    <p className="font-medium">Completed &quot;Introduction to Farm Equipment Safety&quot;</p>
                     <p className="text-sm text-gray-500">2 days ago</p>
                   </div>
                 </div>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                     <BookOpenIcon className="h-5 w-5 text-green-500" />
                   </div>
                   <div>
-                    <p className="font-medium">Started "Tractor Operation Safety"</p>
+                    <p className="font-medium">Started &quot;Tractor Operation Safety&quot;</p>
                     <p className="text-sm text-gray-500">1 day ago</p>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
                     <BookOpenIcon className="h-5 w-5 text-purple-500" />
                   </div>
                   <div>
-                    <p className="font-medium">Completed "Tractor Operation Safety"</p>
+                    <p className="font-medium">Completed &quot;Tractor Operation Safety&quot;</p>
                     <p className="text-sm text-gray-500">Today</p>
                   </div>
                 </div>

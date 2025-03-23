@@ -162,7 +162,10 @@ export function MainNav() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg" alt="User" />
+                  <AvatarImage 
+                    src="/placeholder.svg" 
+                    alt={`${session?.user?.name || 'User'} avatar`}
+                  />
                   <AvatarFallback>{session?.user?.name?.substring(0, 2) || 'U'}</AvatarFallback>
                 </Avatar>
               </Button>
