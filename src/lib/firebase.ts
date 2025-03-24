@@ -33,8 +33,9 @@ const firebaseConfig = {
 
 // Initialize Firebase with singleton pattern
 let firebaseApp: FirebaseApp | undefined;
-let firebaseAuth: Auth;
-let firebaseDb: Firestore;
+// Initialize services with default empty app
+let firebaseAuth: Auth = getAuth();
+let firebaseDb: Firestore = getFirestore();
 
 // Initialize Firebase safely
 try {
@@ -46,7 +47,7 @@ try {
     firebaseApp = getApps()[0];
   }
 
-  // Initialize services
+  // Initialize services with the proper app
   firebaseAuth = getAuth(firebaseApp);
   firebaseDb = getFirestore(firebaseApp);
 
@@ -62,6 +63,15 @@ try {
   }
 } catch (error) {
   console.error("Firebase initialization error:", error);
+  
+  // Make sure we always have initialized services even in case of errors
+  if (!firebaseAuth) {
+    firebaseAuth = getAuth();
+  }
+  
+  if (!firebaseDb) {
+    firebaseDb = getFirestore();
+  }
 }
 
 // Export the authenticated services
