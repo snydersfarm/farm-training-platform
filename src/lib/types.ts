@@ -2,7 +2,7 @@
  * Shared types for database connections and metrics
  */
 
-import { DefaultSession } from "next-auth";
+import { DefaultSession, DefaultUser } from "next-auth";
 
 // Connection metrics interface
 export interface DatabaseConnectionMetrics {
@@ -39,7 +39,7 @@ export interface HealthMetrics {
   environment: string;
 }
 
-// Extend Next Auth session types to include our custom user properties
+// Extend Next Auth types to include our custom user properties
 declare module "next-auth" {
   interface Session {
     user: {
@@ -52,5 +52,12 @@ declare module "next-auth" {
       position?: string | null;
       emailVerified?: Date | null;
     } & DefaultSession["user"]
+  }
+  
+  interface User extends DefaultUser {
+    role?: string;
+    department?: string;
+    position?: string;
+    emailVerified?: boolean | Date;
   }
 } 
