@@ -2,6 +2,7 @@ import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { 
   getAuth, sendEmailVerification, applyActionCode, 
   checkActionCode, EmailAuthProvider, reauthenticateWithCredential,
+  sendPasswordResetEmail, verifyPasswordResetCode, confirmPasswordReset,
   Auth
 } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
@@ -168,6 +169,53 @@ export const manualVerifyEmail = async (actionCode: string) => {
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Verification failed" 
+    };
+  }
+};
+
+// Password reset functions
+export const sendPasswordReset = async (email: string, continueUrl = `${process.env.NEXTAUTH_URL || ''}/login`) => {
+  try {
+    const actionCodeSettings = {
+      url: continueUrl,
+      handleCodeInApp: true,
+    };
+    
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    return { success: true };
+  } catch (error) {
+    console.error("Password reset email error:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Failed to send password reset email" 
+    };
+  }
+};
+
+export const verifyPasswordReset = async (actionCode: string) => {
+  try {
+    // Verify the password reset code
+    const email = await verifyPasswordResetCode(auth, actionCode);
+    return { success: true, email };
+  } catch (error) {
+    console.error("Password reset verification error:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Invalid or expired reset code" 
+    };
+  }
+};
+
+export const completePasswordReset = async (actionCode: string, newPassword: string) => {
+  try {
+    // Confirm the password reset
+    await confirmPasswordReset(auth, actionCode, newPassword);
+    return { success: true };
+  } catch (error) {
+    console.error("Password reset completion error:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Failed to reset password" 
     };
   }
 };
