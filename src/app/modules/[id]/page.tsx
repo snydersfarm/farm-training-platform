@@ -133,13 +133,12 @@ const trainingModules = [
 
 // Update the type definition to match Next.js 15 requirements
 type Props = {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
-// Use the updated type signature with async/await
-export default async function ModuleDetailPage(props: Props) {
-  const params = await props.params;
+// Use a regular function instead of async
+export default function ModuleDetailPage({ params, searchParams }: Props) {
   const moduleId = Number.parseInt(params.id, 10);
   const moduleData = trainingModules.find(m => m.id === moduleId);
   
