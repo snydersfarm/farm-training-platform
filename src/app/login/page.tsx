@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 export default function LoginPage() {
@@ -57,12 +58,20 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
+              <div className="flex justify-between items-center">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Password
+                </label>
+                <Link
+                  href="/reset-password"
+                  className="text-sm text-green-600 hover:text-green-500"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="mt-1">
                 <input
                   id="password"

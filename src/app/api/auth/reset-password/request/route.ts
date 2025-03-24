@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { sendPasswordReset } from '@/lib/firebase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,14 +13,13 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Create the reset URL with the application URL
-    const actionCodeSettings = {
-      url: `${process.env.NEXTAUTH_URL || window.location.origin}/login`,
-      handleCodeInApp: true,
-    };
+    // Use our Firebase utility to send password reset email
+    const continueUrl = `${process.env.NEXTAUTH_URL || request.headers.get('origin') || ''}/login`;
+    const result = await sendPasswordReset(email, continueUrl);
     
-    // Send password reset email using Firebase
-    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send reset email');
+    }
     
     // Always return success, even if the email doesn't exist for security reasons
     return NextResponse.json({ success: true });

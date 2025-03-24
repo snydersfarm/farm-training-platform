@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyPasswordResetCode } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { verifyPasswordReset } from '@/lib/firebase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,13 +13,18 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Verify the password reset code with Firebase
-    await verifyPasswordResetCode(auth, token);
+    // Verify the password reset code with our Firebase utility
+    const result = await verifyPasswordReset(token);
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Invalid or expired reset token');
+    }
     
     // If we get here, the token is valid
     return NextResponse.json({ 
       success: true,
-      message: 'Token is valid'
+      message: 'Token is valid',
+      email: result.email
     });
   } catch (error) {
     console.error('Error validating password reset token:', error);

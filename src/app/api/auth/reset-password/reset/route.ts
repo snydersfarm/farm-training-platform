@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { completePasswordReset, verifyPasswordReset } from '@/lib/firebase';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 
@@ -24,28 +23,35 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Complete the password reset with Firebase
-    await confirmPasswordReset(auth, token, password);
+    // First verify the token to get the email
+    const verifyResult = await verifyPasswordReset(token);
     
-    // If we get here, password reset was successful
-    // Get the email associated with this reset code
-    const email = await getEmailFromResetCode(token);
+    if (!verifyResult.success || !verifyResult.email) {
+      throw new Error(verifyResult.error || 'Invalid or expired reset token');
+    }
     
-    // Update the password in your database if you're storing it there as well
-    if (email) {
-      try {
-        // Hash the password for database storage
-        const hashedPassword = await hash(password, 10);
-        
-        // Update the user in the database
-        await prisma.user.update({
-          where: { email },
-          data: { password: hashedPassword }
-        });
-      } catch (dbError) {
-        console.error('Failed to update password in database:', dbError);
-        // We still consider this a success since Firebase auth was updated
-      }
+    const email = verifyResult.email;
+    
+    // Complete the password reset with our Firebase utility
+    const resetResult = await completePasswordReset(token, password);
+    
+    if (!resetResult.success) {
+      throw new Error(resetResult.error || 'Failed to reset password');
+    }
+    
+    // Update the password in the database as well
+    try {
+      // Hash the password for database storage
+      const hashedPassword = await hash(password, 10);
+      
+      // Update the user in the database
+      await prisma.user.update({
+        where: { email },
+        data: { password: hashedPassword }
+      });
+    } catch (dbError) {
+      console.error('Failed to update password in database:', dbError);
+      // We still consider this a success since Firebase auth was updated
     }
     
     return NextResponse.json({ 
@@ -62,17 +68,5 @@ export async function POST(request: NextRequest) {
       },
       { status: 400 }
     );
-  }
-}
-
-// Helper function to get email from reset code
-async function getEmailFromResetCode(resetCode: string): Promise<string | null> {
-  try {
-    // Verify the code to get the email
-    const email = await verifyPasswordResetCode(auth, resetCode);
-    return email;
-  } catch (error) {
-    console.error('Error getting email from reset code:', error);
-    return null;
   }
 } 
