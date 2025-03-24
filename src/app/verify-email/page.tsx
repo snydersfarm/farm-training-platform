@@ -121,7 +121,7 @@ export default function VerifyEmailPage() {
               {/* Form to manually verify the email - for troubleshooting */}
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600 mb-2">
-                  If you're still having trouble, try signing in again or contact support.
+                  If you&apos;re still having trouble, try signing in again or contact support.
                 </p>
               </div>
               
