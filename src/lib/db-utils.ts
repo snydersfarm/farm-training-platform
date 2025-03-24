@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { prisma } from './prisma';
+import type { ApplicationMetrics } from './types';
 
 // Pool Connection Manager for serverless environment
 // This helps manage connection lifecycles in serverless environments
@@ -63,7 +64,7 @@ export async function withDatabase<T>(callback: (db: PrismaClient) => Promise<T>
 }
 
 // Generate database metrics
-export async function getDatabaseMetrics() {
+export async function getDatabaseMetrics(): Promise<ApplicationMetrics> {
   try {
     // Sample metrics
     const userCount = await prisma.user.count();
@@ -79,7 +80,9 @@ export async function getDatabaseMetrics() {
   } catch (error) {
     console.error('Error generating database metrics:', error);
     return {
-      error: 'Failed to generate database metrics',
+      userCount: -1,
+      moduleCount: -1,
+      progressCount: -1,
       lastChecked: new Date().toISOString(),
     };
   }

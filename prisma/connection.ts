@@ -1,26 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import type { DatabaseConnectionMetrics } from '../src/lib/types';
 
-// Performance monitoring interface
-interface DatabaseMetrics {
-  connectionsCreated: number;
-  connectionsReleased: number;
-  maxConcurrentConnections: number;
-  retryAttempts: number;
-  successfulRetries: number;
-  failedRetries: number;
-  averageQueryTime: number;
-  totalQueries: number;
-  errors: {
-    connectionErrors: number;
-    queryErrors: number;
-    timeoutErrors: number;
-    otherErrors: number;
-  };
-  lastReset: Date;
-}
+// Performance monitoring interface - use the imported type
+export type { DatabaseConnectionMetrics };
 
 // Global metrics tracker
-const metrics: DatabaseMetrics = {
+const metrics: DatabaseConnectionMetrics = {
   connectionsCreated: 0,
   connectionsReleased: 0,
   maxConcurrentConnections: 0,
@@ -62,7 +47,7 @@ if (typeof setInterval !== 'undefined' && typeof window === 'undefined') {
 }
 
 // Get current database metrics
-export function getDatabaseMetrics(): DatabaseMetrics {
+export function getDatabaseMetrics(): DatabaseConnectionMetrics {
   return { ...metrics };
 }
 

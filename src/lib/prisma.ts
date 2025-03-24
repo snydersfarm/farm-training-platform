@@ -48,6 +48,9 @@ export const prisma = getPrismaClient();
 // Export the withPrisma function for safe database operations
 export { withPrisma };
 
+// Re-export the getDatabaseMetrics function from connection.ts
+export { getDatabaseMetrics } from '../../prisma/connection';
+
 // Health check method
 export async function checkDatabaseHealth(): Promise<boolean> {
   return withPrisma(async (client) => {
