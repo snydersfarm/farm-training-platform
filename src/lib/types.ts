@@ -58,6 +58,6 @@ declare module "next-auth" {
     role?: string;
     department?: string;
     position?: string;
-    emailVerified?: boolean | Date;
+    emailVerified?: boolean | Date | null;
   }
 } 
