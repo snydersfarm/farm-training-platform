@@ -176,10 +176,10 @@ export default function IssueCertification() {
     setSelectedModule(value);
     
     // Auto-populate certificate name based on module
-    const module = modules.find(m => m.id === value);
-    if (module) {
-      setCertName(`${module.title} Certification`);
-      setDescription(`This certifies that the user has completed the ${module.title} module and demonstrated proficiency in all required skills.`);
+    const selectedMod = modules.find(m => m.id === value);
+    if (selectedMod) {
+      setCertName(`${selectedMod.title} Certification`);
+      setDescription(`This certifies that the user has completed the ${selectedMod.title} module and demonstrated proficiency in all required skills.`);
     }
   };
   
