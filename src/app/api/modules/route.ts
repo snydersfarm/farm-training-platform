@@ -66,6 +66,11 @@ export async function POST(request: NextRequest) {
   return withRouteHandler(
     request,
     async ({ db, data }) => {
+      // Validate data exists
+      if (!data) {
+        return errorResponse('Invalid module data', 400);
+      }
+      
       // Check if module with this title already exists
       const existingModule = await db.module.findUnique({
         where: { title: data.title }
