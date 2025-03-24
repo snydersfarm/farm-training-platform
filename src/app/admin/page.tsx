@@ -185,7 +185,9 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full">Generate Report</Button>
+            <Link href="/admin/reports">
+              <Button variant="outline" className="w-full">Generate Report</Button>
+            </Link>
           </CardFooter>
         </Card>
       </div>

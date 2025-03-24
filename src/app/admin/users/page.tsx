@@ -22,6 +22,90 @@ export default function UsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'USER',
+    department: '',
+    position: ''
+  });
+  
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Reset states
+    setCreateError(null);
+    setCreateSuccess(false);
+    setIsCreating(true);
+    
+    try {
+      // Validate form
+      if (!formData.email) {
+        throw new Error('Email is required');
+      }
+      
+      if (!formData.password || formData.password.length < 6) {
+        throw new Error('Password must be at least 6 characters');
+      }
+      
+      // Submit the form data
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+          department: formData.department || undefined,
+          position: formData.position || undefined
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create user');
+      }
+      
+      // Success - reset form and refresh user list
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        role: 'USER',
+        department: '',
+        position: ''
+      });
+      
+      setCreateSuccess(true);
+      fetchUsers(); // Refresh the users list
+      
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error creating user:', err);
+    } finally {
+      setIsCreating(false);
+    }
+  };
   
   // Check if the user is admin
   useEffect(() => {
@@ -154,7 +238,41 @@ export default function UsersManagement() {
           <CardTitle>Add New User</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
+          {createSuccess && (
+            <div className="mb-4 bg-green-50 border-l-4 border-green-500 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-green-700">
+                    User created successfully!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {createError && (
+            <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">
+                    {createError}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -162,36 +280,79 @@ export default function UsersManagement() {
                   type="text" 
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                   placeholder="Enter user's name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-sm font-medium text-gray-700">Email <span className="text-red-500">*</span></label>
                 <input 
                   type="email" 
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                   placeholder="Enter user's email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <label className="block text-sm font-medium text-gray-700">Password <span className="text-red-500">*</span></label>
                 <input 
                   type="password" 
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                  placeholder="Enter password"
+                  placeholder="Enter password (min. 6 characters)"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  minLength={6}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Role</label>
                 <select
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
                 >
                   <option value="USER">User</option>
                   <option value="MANAGER">Manager</option>
                   <option value="ADMIN">Admin</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Department</label>
+                <input 
+                  type="text" 
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                  placeholder="e.g., Livestock, Crops, Equipment"
+                  name="department"
+                  value={formData.department}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Position</label>
+                <input 
+                  type="text" 
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                  placeholder="e.g., Farm Worker, Supervisor"
+                  name="position"
+                  value={formData.position}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
-            <Button type="submit" className="mt-4">Create User</Button>
+            <Button 
+              type="submit" 
+              className="mt-4"
+              disabled={isCreating}
+            >
+              {isCreating ? 'Creating...' : 'Create User'}
+            </Button>
           </form>
         </CardContent>
       </Card>
