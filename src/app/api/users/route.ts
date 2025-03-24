@@ -31,6 +31,11 @@ export async function POST(request: NextRequest) {
   return withRouteHandler(
     request,
     async ({ db, data }) => {
+      // Validate data exists
+      if (!data) {
+        return errorResponse('Invalid user data', 400);
+      }
+      
       // Check if user already exists
       const existingUser = await db.user.findUnique({
         where: { email: data.email }
