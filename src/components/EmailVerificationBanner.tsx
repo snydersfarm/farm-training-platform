@@ -10,7 +10,7 @@ export default function EmailVerificationBanner() {
   const [error, setError] = useState('');
 
   // Check if user exists and if email is not verified
-  const needsVerification = session?.user && session.user.emailVerified === false;
+  const needsVerification = session?.user && !session.user.emailVerified;
 
   // If email is verified or there's no user, don't show the banner
   if (!needsVerification) {
