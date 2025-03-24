@@ -85,18 +85,86 @@ export const sendVerificationEmail = async (continueUrl = `${process.env.NEXTAUT
 };
 
 export const verifyEmail = async (actionCode: string) => {
+  console.log("Starting email verification process with action code:", actionCode?.substring(0, 5) + "...");
+  
   try {
     // First check the action code is valid
+    console.log("Checking action code validity...");
     await checkActionCode(auth, actionCode);
+    console.log("Action code is valid, applying code...");
+    
     // Apply the verification code to confirm the action
     await applyActionCode(auth, actionCode);
+    console.log("Action code applied successfully");
     
     // Force token refresh to update user's emailVerified status in session
-    await auth.currentUser?.reload();
+    const currentUser = auth.currentUser;
+    console.log("Current user in verifyEmail:", currentUser?.email);
+    
+    if (currentUser) {
+      console.log("Reloading user to update emailVerified status...");
+      await currentUser.reload();
+      console.log("User reloaded, emailVerified status:", currentUser.emailVerified);
+      
+      // Force token refresh
+      console.log("Forcing token refresh...");
+      await currentUser.getIdToken(true);
+      console.log("Token refreshed successfully");
+    } else {
+      console.warn("No current user found during email verification");
+    }
     
     return { success: true };
   } catch (error) {
-    console.error("Email verification error:", error);
+    console.error("Email verification detailed error:", error);
+    // Log detailed error properties
+    if (error && typeof error === 'object') {
+      console.error("Error code:", (error as any).code);
+      console.error("Error message:", (error as any).message);
+      console.error("Error name:", (error as any).name);
+    }
+    
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Verification failed" 
+    };
+  }
+};
+
+// Add a function for manual verification that doesn't require current user
+export const manualVerifyEmail = async (actionCode: string) => {
+  console.log("Starting manual email verification with action code:", actionCode?.substring(0, 5) + "...");
+  
+  try {
+    // First check if the action code is valid
+    console.log("Checking action code validity...");
+    const actionCodeInfo = await checkActionCode(auth, actionCode);
+    console.log("Action code info:", actionCodeInfo);
+    
+    // Get the email from the action code info
+    const email = actionCodeInfo.data.email;
+    console.log("Email from action code:", email);
+    
+    if (!email) {
+      throw new Error("No email found in the verification link");
+    }
+    
+    // Apply the verification code to confirm the action
+    await applyActionCode(auth, actionCode);
+    console.log("Action code applied successfully");
+    
+    // Return success with the email that was verified
+    return { 
+      success: true,
+      email
+    };
+  } catch (error) {
+    console.error("Manual email verification error:", error);
+    if (error && typeof error === 'object') {
+      console.error("Error code:", (error as any).code);
+      console.error("Error message:", (error as any).message);
+    }
+    
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Verification failed" 

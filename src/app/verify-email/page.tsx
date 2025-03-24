@@ -9,18 +9,25 @@ export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
   useEffect(() => {
     const verifyEmail = async () => {
       try {
         // Get the oobCode (action code) from URL
         const actionCode = searchParams.get('oobCode');
+        const mode = searchParams.get('mode');
+        
+        console.log('Verification page loaded with mode:', mode);
         
         if (!actionCode) {
           setStatus('error');
           setErrorMessage('Verification code is missing');
+          setDebugInfo('No oobCode parameter found in URL');
           return;
         }
+
+        console.log('Calling API with action code:', actionCode.substring(0, 5) + '...');
 
         // Call the API to verify the email
         const response = await fetch('/api/auth/verify-email/confirm', {
@@ -32,6 +39,7 @@ export default function VerifyEmailPage() {
         });
 
         const data = await response.json();
+        console.log('API response:', data);
 
         if (!response.ok) {
           throw new Error(data.error || 'Verification failed');
@@ -45,8 +53,19 @@ export default function VerifyEmailPage() {
           router.push('/dashboard');
         }, 3000);
       } catch (error) {
+        console.error('Verification error in client:', error);
         setStatus('error');
-        setErrorMessage(error instanceof Error ? error.message : 'Verification failed');
+        
+        const errorMsg = error instanceof Error ? error.message : 'Verification failed';
+        setErrorMessage(errorMsg);
+        
+        if (error instanceof Error) {
+          setDebugInfo(JSON.stringify({
+            name: error.name,
+            message: error.message,
+            stack: error.stack?.slice(0, 200) + '...'
+          }, null, 2));
+        }
       }
     };
 
@@ -99,6 +118,22 @@ export default function VerifyEmailPage() {
               >
                 Try Again
               </button>
+              {/* Form to manually verify the email - for troubleshooting */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600 mb-2">
+                  If you're still having trouble, try signing in again or contact support.
+                </p>
+              </div>
+              
+              {/* Debug information for admins */}
+              {debugInfo && (
+                <details className="mt-4 text-left">
+                  <summary className="text-sm text-gray-500 cursor-pointer">Debug Information (for administrators)</summary>
+                  <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-40">
+                    {debugInfo}
+                  </pre>
+                </details>
+              )}
             </div>
           </div>
         )}
