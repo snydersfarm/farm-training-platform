@@ -1,22 +1,24 @@
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
-
-const prisma = new PrismaClient();
+import { withPrisma } from './connection';
 
 async function main() {
-  // Create specific user
-  const hashedPassword = await hash('JpsMls4904', 12);
-  const user = await prisma.user.upsert({
-    where: { email: 'john@snydersfarm.com' },
-    update: {},
-    create: {
-      email: 'john@snydersfarm.com',
-      name: 'John Snyder',
-      password: hashedPassword,
-    },
-  });
+  // Use withPrisma for proper connection management
+  await withPrisma(async (prisma) => {
+    // Create specific user
+    const hashedPassword = await hash('JpsMls4904', 12);
+    const user = await prisma.user.upsert({
+      where: { email: 'john@snydersfarm.com' },
+      update: {},
+      create: {
+        email: 'john@snydersfarm.com',
+        name: 'John Snyder',
+        password: hashedPassword,
+      },
+    });
 
-  console.log({ user });
+    console.log({ user });
+  });
 }
 
 main()
@@ -25,5 +27,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    // No need to disconnect manually
   }); 

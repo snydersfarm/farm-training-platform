@@ -44,31 +44,35 @@ if (missingVars.length > 0) {
 // Test database connection
 console.log('\n🔌 Testing database connection...');
 
-// Lazy-load PrismaClient to avoid issues if the environment variables are missing
+// Use the singleton pattern for PrismaClient
 async function testDatabaseConnection() {
   try {
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
+    // Use the connection manager from our common module
+    const { getPrismaClient, withPrisma } = require('../prisma/connection');
     
     console.log('📊 Connecting to database...');
-    const result = await prisma.$queryRaw`SELECT 1 as "connection_test"`;
     
-    if (Array.isArray(result) && result.length > 0) {
+    // Use withPrisma helper for connection management
+    const connectionTest = await withPrisma(async (client) => {
+      const result = await client.$queryRaw`SELECT 1 as "connection_test"`;
+      return Array.isArray(result) && result.length > 0;
+    });
+    
+    if (connectionTest) {
       console.log('✅ Database connection successful!');
       
-      // Check schema
+      // Check schema using withPrisma for proper connection management
       console.log('\n📋 Checking database schema...');
-      const userCount = await prisma.user.count();
+      
+      const userCount = await withPrisma(client => client.user.count());
       console.log(`👤 User count: ${userCount}`);
       
-      const moduleCount = await prisma.module.count();
+      const moduleCount = await withPrisma(client => client.module.count());
       console.log(`📚 Module count: ${moduleCount}`);
       
-      await prisma.$disconnect();
       return true;
     } else {
       console.error('❌ Database connection test failed - no result returned');
-      await prisma.$disconnect();
       return false;
     }
   } catch (error) {

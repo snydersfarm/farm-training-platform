@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { checkDatabaseHealth } from '@/lib/prisma';
-import { getDatabaseMetrics } from '@/lib/db-utils';
+import { getDatabaseMetrics as getAppMetrics } from '@/lib/db-utils';
+import { getDatabaseMetrics as getConnectionMetrics } from '../../../prisma/connection';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,14 +12,22 @@ export async function GET() {
     const isDbHealthy = await checkDatabaseHealth();
     
     if (isDbHealthy) {
-      // Get additional database metrics
-      const metrics = await getDatabaseMetrics();
+      // Get application-level metrics
+      const appMetrics = await getAppMetrics();
+      
+      // Get connection-level metrics
+      const connectionMetrics = getConnectionMetrics();
       
       return NextResponse.json({
         status: 'ok',
         database: 'connected',
         timestamp: new Date().toISOString(),
-        metrics
+        metrics: {
+          application: appMetrics,
+          connection: connectionMetrics
+        },
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'unknown'
       }, { status: 200 });
     } else {
       return NextResponse.json({
