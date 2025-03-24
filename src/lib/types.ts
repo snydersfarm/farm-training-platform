@@ -50,6 +50,7 @@ declare module "next-auth" {
       role?: string | null;
       department?: string | null;
       position?: string | null;
+      emailVerified?: Date | null;
     } & DefaultSession["user"]
   }
 } 
