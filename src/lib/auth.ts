@@ -33,6 +33,11 @@ export const authOptions: NextAuthOptions = {
         if (!user) {
           throw new Error('No user found with this email')
         }
+        
+        // Check if the user has a password
+        if (!user.password) {
+          throw new Error('Password not set for this user')
+        }
 
         const passwordValid = await compare(credentials.password, user.password)
 
