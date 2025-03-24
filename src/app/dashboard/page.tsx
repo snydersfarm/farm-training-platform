@@ -1,9 +1,12 @@
+'use client';
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import EmailVerificationBanner from '@/components/EmailVerificationBanner'
+import { useSession } from 'next-auth/react'
 
 // Define SVG icon components to replace lucide-react
 const BookOpenIcon = ({ className }: { className?: string }) => (
@@ -52,6 +55,9 @@ export default function DashboardPage() {
       
       {/* Email Verification Banner */}
       <EmailVerificationBanner />
+      
+      {/* Debug User Role */}
+      <UserRoleDebug />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <DashboardCard 
@@ -269,3 +275,23 @@ function DashboardCard({
     </Card>
   )
 }
+
+const UserRoleDebug = () => {
+  const { data: session } = useSession();
+  
+  if (!session) return null;
+  
+  return (
+    <div className="bg-blue-50 p-4 mb-6 rounded-md">
+      <h2 className="font-bold">Debug Information</h2>
+      <p>Email: {session.user?.email}</p>
+      <p>Role: {session.user?.role || 'No role'}</p>
+      <p>Admin Access: {session.user?.role === 'admin' ? 'Yes' : 'No'}</p>
+      <div className="mt-2">
+        <Link href="/admin" className="text-blue-600 hover:underline">
+          Go to Admin Dashboard
+        </Link>
+      </div>
+    </div>
+  );
+};

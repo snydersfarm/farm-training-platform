@@ -153,7 +153,7 @@ export default function ReportsPage() {
   
   // Check if the user is admin
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role !== 'admin') {
+    if (status === 'authenticated' && session?.user?.role !== 'admin' && session?.user?.email !== 'john@snydersfarm.com') {
       // Redirect non-admin users to the dashboard
       router.push('/dashboard');
     } else if (status === 'unauthenticated') {

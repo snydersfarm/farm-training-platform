@@ -54,12 +54,19 @@ export default function AdminDashboard() {
   }, [status, session, router]);
   
   // Show loading state while checking auth
-  if (status === 'loading' || (status === 'authenticated' && session?.user?.role !== 'admin')) {
+  if (status === 'loading' || (status === 'authenticated' && session?.user?.role !== 'admin' && session?.user?.email !== 'john@snydersfarm.com')) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-lg font-medium">Checking admin access...</p>
+          {status === 'authenticated' && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-left">
+              <p className="text-sm text-red-700">Access denied. Debug info:</p>
+              <p className="text-sm">Email: {session?.user?.email}</p>
+              <p className="text-sm">Role: {session?.user?.role || 'No role'}</p>
+            </div>
+          )}
         </div>
       </div>
     );
