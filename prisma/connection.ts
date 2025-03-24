@@ -193,7 +193,7 @@ class PrismaClientSingleton {
                 metrics.totalQueries;
               
               return result;
-            } catch (error) {
+            } catch (error: any) {
               // Track query errors
               if (error.message?.includes('timeout')) {
                 metrics.errors.timeoutErrors++;
@@ -211,7 +211,7 @@ class PrismaClientSingleton {
         if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
           PrismaClientSingleton.startCleanupTimer();
         }
-      } catch (error) {
+      } catch (error: any) {
         // Track connection errors
         metrics.errors.connectionErrors++;
         throw error;
@@ -301,7 +301,7 @@ class PrismaClientSingleton {
         // Disconnect and clear instance
         await PrismaClientSingleton.disconnect();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during connection cleanup:', error);
     } finally {
       PrismaClientSingleton.isCleaningUp = false;
@@ -320,7 +320,7 @@ class PrismaClientSingleton {
         if (process.env.NODE_ENV === 'development') {
           console.log('Prisma disconnected due to inactivity');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error disconnecting Prisma:', error);
       }
     }
@@ -455,7 +455,8 @@ export async function withPrismaContext<T>(
       }
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
+      // Save the error
       lastError = error;
       
       // Add context to the error

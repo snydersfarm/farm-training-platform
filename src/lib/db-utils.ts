@@ -77,7 +77,7 @@ export async function getDatabaseMetrics(): Promise<ApplicationMetrics> {
       progressCount,
       lastChecked: new Date().toISOString(),
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating database metrics:', error);
     return {
       userCount: -1,

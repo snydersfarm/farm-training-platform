@@ -58,7 +58,7 @@ export async function checkDatabaseHealth(): Promise<boolean> {
       // Simple query to check database connection
       const result = await client.$queryRaw`SELECT 1 as "connection_test"`;
       return Array.isArray(result) && result.length > 0;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Database health check failed:', error);
       return false;
     }

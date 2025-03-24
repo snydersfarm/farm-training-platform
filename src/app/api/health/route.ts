@@ -39,7 +39,7 @@ export async function GET() {
         timestamp: new Date().toISOString()
       }, { status: 503 });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Health check failed:', error);
     
     return NextResponse.json({
