@@ -31,52 +31,38 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-Q5N308C5JQ"
 };
 
-// Initialize Firebase with singleton pattern
-let firebaseApp: FirebaseApp | undefined;
-// Initialize services with default empty app
-let firebaseAuth: Auth = getAuth();
-let firebaseDb: Firestore = getFirestore();
-
-// Initialize Firebase safely
-try {
-  // Check if Firebase is already initialized
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
-    console.log("Firebase initialized successfully");
-  } else {
-    firebaseApp = getApps()[0];
-  }
-
-  // Initialize services with the proper app
-  firebaseAuth = getAuth(firebaseApp);
-  firebaseDb = getFirestore(firebaseApp);
-
-  // Initialize analytics on client side if supported
-  if (typeof window !== 'undefined') {
-    isSupported().then(supported => {
-      if (supported) {
-        getAnalytics(firebaseApp);
-      }
-    }).catch(err => {
-      console.warn("Firebase analytics not supported:", err);
-    });
-  }
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-  
-  // Make sure we always have initialized services even in case of errors
-  if (!firebaseAuth) {
-    firebaseAuth = getAuth();
-  }
-  
-  if (!firebaseDb) {
-    firebaseDb = getFirestore();
+// Ensure Firebase is initialized
+function initializeFirebase() {
+  try {
+    if (!getApps().length) {
+      return initializeApp(firebaseConfig);
+    } else {
+      return getApps()[0];
+    }
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+    // In case of an error, still try to initialize
+    return initializeApp(firebaseConfig);
   }
 }
 
-// Export the authenticated services
-export const auth = firebaseAuth;
-export const db = firebaseDb;
+// Initialize Firebase
+const firebaseApp = initializeFirebase();
+
+// Export authenticated services
+export const auth = getAuth(firebaseApp);
+export const db = getFirestore(firebaseApp);
+
+// Initialize analytics on client side if supported
+if (typeof window !== 'undefined') {
+  isSupported().then(supported => {
+    if (supported) {
+      getAnalytics(firebaseApp);
+    }
+  }).catch(err => {
+    console.warn("Firebase analytics not supported:", err);
+  });
+}
 
 // Email verification functions
 export const sendVerificationEmail = async (continueUrl = `${process.env.NEXTAUTH_URL}/dashboard`) => {
