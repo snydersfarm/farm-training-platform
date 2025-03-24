@@ -58,13 +58,6 @@ const AdminIcon = () => (
   </svg>
 )
 
-const SettingsIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4">
-    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-)
-
 const LogOutIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -160,7 +153,10 @@ export function MainNav() {
         <div className="flex items-center space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button 
+                variant="ghost" 
+                className="relative flex items-center gap-2 px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
                 <Avatar className="h-8 w-8">
                   <AvatarImage 
                     src="/placeholder.svg" 
@@ -168,6 +164,9 @@ export function MainNav() {
                   />
                   <AvatarFallback>{session?.user?.name?.substring(0, 2) || 'U'}</AvatarFallback>
                 </Avatar>
+                <span className="hidden sm:inline-block text-sm font-medium">
+                  {session?.user?.name?.split(' ')[0] || 'User'}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -177,18 +176,30 @@ export function MainNav() {
                   <p className="text-xs leading-none text-muted-foreground">
                     {session?.user?.email || 'user@example.com'}
                   </p>
+                  
+                  {/* Position and Department */}
+                  {(session?.user?.position || session?.user?.department) && (
+                    <p className="text-xs leading-none text-muted-foreground mt-1">
+                      {[session?.user?.position, session?.user?.department]
+                        .filter(Boolean)
+                        .join(' • ')}
+                    </p>
+                  )}
+                  
+                  {/* Role badges */}
                   {session?.user?.role === 'admin' && (
                     <span className="mt-1 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                       Admin
                     </span>
                   )}
+                  {session?.user?.role === 'MANAGER' && (
+                    <span className="mt-1 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                      Manager
+                    </span>
+                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <SettingsIcon />
-                <span>Settings</span>
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSignOut}>
                 <LogOutIcon />
                 <span>Log out</span>
