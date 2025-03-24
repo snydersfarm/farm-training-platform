@@ -44,7 +44,7 @@ export const authOptions: NextAuthOptions = {
             name: user.displayName || user.email.split('@')[0],
             image: user.photoURL,
             role: user.email === ADMIN_EMAIL ? 'admin' : 'user',
-            emailVerified: user.emailVerified
+            emailVerified: user.emailVerified ? new Date() : null,
           };
         } catch (error: any) {
           console.error('Authentication error:', error);
@@ -76,7 +76,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as 'admin' | 'user';
-        session.user.emailVerified = token.emailVerified as boolean;
+        session.user.emailVerified = token.emailVerified as Date | null;
       }
       return session;
     }
