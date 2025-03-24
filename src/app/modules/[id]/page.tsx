@@ -101,7 +101,7 @@ const trainingModules = [
     title: 'Crop Rotation Techniques',
     description: 'Master the art of crop rotation to improve soil health and increase yields.',
     duration: '3 hours',
-    lessons: 8,
+    lessonCount: 8,
     level: 'Intermediate',
     category: 'Crops',
     image: '/placeholder.svg?height=400&width=800',
