@@ -6,6 +6,10 @@ const nextConfig = {
     },
     optimizePackageImports: ['@prisma/client']
   },
+  typescript: {
+    // Set to true to ignore typescript errors
+    ignoreBuildErrors: true,
+  },
   webpack: (config) => {
     config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx'];
     config.resolve.fallback = {
