@@ -130,7 +130,7 @@ const CONNECTION_LIMIT = getConnectionLimit();
  */
 class PrismaClientSingleton {
   // Singleton instance
-  private static instance: PrismaClient;
+  private static instance: PrismaClient | null = null;
   // Track connections
   private static connectionCount = 0;
   
