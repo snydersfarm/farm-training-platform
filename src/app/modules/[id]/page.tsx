@@ -131,20 +131,20 @@ const trainingModules = [
   }
 ]
 
-// Type definition for params
-interface ModulePageParams {
-  params: {
-    id: string;
-  };
+// Update the type definition to match Next.js 15 requirements
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-// Use the Next.js recommended page function signature
-export default function ModuleDetailPage({ params }: ModulePageParams) {
-  const moduleId = Number.parseInt(params.id, 10)
-  const moduleData = trainingModules.find(m => m.id === moduleId)
+// Use the updated type signature with async/await
+export default async function ModuleDetailPage(props: Props) {
+  const params = await props.params;
+  const moduleId = Number.parseInt(params.id, 10);
+  const moduleData = trainingModules.find(m => m.id === moduleId);
   
   if (!moduleData) {
-    notFound()
+    notFound();
   }
   
   return (
