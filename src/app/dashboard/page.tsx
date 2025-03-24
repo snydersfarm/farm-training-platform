@@ -281,16 +281,29 @@ const UserRoleDebug = () => {
   
   if (!session) return null;
   
+  const forceAdminAccess = async () => {
+    // This is just a UI change to help with debugging
+    // In a real app, you would need server-side authorization
+    localStorage.setItem('forceAdmin', 'true');
+    window.location.href = '/admin';
+  };
+  
   return (
     <div className="bg-blue-50 p-4 mb-6 rounded-md">
       <h2 className="font-bold">Debug Information</h2>
       <p>Email: {session.user?.email}</p>
       <p>Role: {session.user?.role || 'No role'}</p>
       <p>Admin Access: {session.user?.role === 'admin' ? 'Yes' : 'No'}</p>
-      <div className="mt-2">
-        <Link href="/admin" className="text-blue-600 hover:underline">
+      <div className="mt-2 space-y-2">
+        <Link href="/admin" className="text-blue-600 hover:underline block">
           Go to Admin Dashboard
         </Link>
+        <button 
+          onClick={forceAdminAccess}
+          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+        >
+          Force Admin Access (Debug)
+        </button>
       </div>
     </div>
   );

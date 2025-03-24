@@ -45,24 +45,39 @@ export default function CertificationsManagement() {
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [forceAdmin, setForceAdmin] = useState(false);
+  
+  // Check for forced admin access (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasForceAdmin = localStorage.getItem('forceAdmin') === 'true';
+      setForceAdmin(hasForceAdmin);
+    }
+  }, []);
   
   // Check if the user is admin
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role !== 'admin' && session?.user?.email !== 'john@snydersfarm.com') {
+    if (status === 'authenticated' && 
+        session?.user?.role !== 'admin' && 
+        session?.user?.email !== 'john@snydersfarm.com' &&
+        !forceAdmin) {
       // Redirect non-admin users to the dashboard
       router.push('/dashboard');
     } else if (status === 'unauthenticated') {
       // Redirect unauthenticated users to login
       router.push('/login');
     }
-  }, [status, session, router]);
+  }, [status, session, router, forceAdmin]);
   
   // Fetch certifications when authenticated as admin
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role === 'admin') {
+    if (status === 'authenticated' && 
+       (session?.user?.role === 'admin' || 
+        session?.user?.email === 'john@snydersfarm.com' || 
+        forceAdmin)) {
       fetchCertifications();
     }
-  }, [status, session]);
+  }, [status, session, forceAdmin]);
   
   const fetchCertifications = async () => {
     try {

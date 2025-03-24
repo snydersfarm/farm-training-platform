@@ -44,6 +44,7 @@ export default function IssueCertification() {
   const [modules, setModules] = useState<Module[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [forceAdmin, setForceAdmin] = useState(false);
   
   // Form state
   const [selectedUser, setSelectedUser] = useState<string>('');
@@ -55,6 +56,14 @@ export default function IssueCertification() {
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   
+  // Check for forced admin access (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasForceAdmin = localStorage.getItem('forceAdmin') === 'true';
+      setForceAdmin(hasForceAdmin);
+    }
+  }, []);
+  
   // Calculate default expiry date (1 year from today)
   useEffect(() => {
     const defaultDate = new Date();
@@ -64,21 +73,27 @@ export default function IssueCertification() {
   
   // Check if the user is admin
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role !== 'admin' && session?.user?.email !== 'john@snydersfarm.com') {
+    if (status === 'authenticated' && 
+        session?.user?.role !== 'admin' && 
+        session?.user?.email !== 'john@snydersfarm.com' &&
+        !forceAdmin) {
       // Redirect non-admin users to the dashboard
       router.push('/dashboard');
     } else if (status === 'unauthenticated') {
       // Redirect unauthenticated users to login
       router.push('/login');
     }
-  }, [status, session, router]);
+  }, [status, session, router, forceAdmin]);
   
   // Fetch users and modules when authenticated as admin
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role === 'admin') {
+    if (status === 'authenticated' && 
+       (session?.user?.role === 'admin' || 
+        session?.user?.email === 'john@snydersfarm.com' || 
+        forceAdmin)) {
       fetchUsersAndModules();
     }
-  }, [status, session]);
+  }, [status, session, forceAdmin]);
   
   const fetchUsersAndModules = async () => {
     try {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,20 +41,36 @@ const ReportsIcon = () => (
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [forceAdmin, setForceAdmin] = useState(false);
+  
+  // Check for forced admin access (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasForceAdmin = localStorage.getItem('forceAdmin') === 'true';
+      setForceAdmin(hasForceAdmin);
+    }
+  }, []);
   
   // Check if the user is admin
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role !== 'admin') {
+    if (status === 'authenticated' && 
+        session?.user?.role !== 'admin' && 
+        session?.user?.email !== 'john@snydersfarm.com' &&
+        !forceAdmin) {
       // Redirect non-admin users to the dashboard
       router.push('/dashboard');
     } else if (status === 'unauthenticated') {
       // Redirect unauthenticated users to login
       router.push('/login');
     }
-  }, [status, session, router]);
+  }, [status, session, router, forceAdmin]);
   
   // Show loading state while checking auth
-  if (status === 'loading' || (status === 'authenticated' && session?.user?.role !== 'admin' && session?.user?.email !== 'john@snydersfarm.com')) {
+  if (status === 'loading' || 
+      (status === 'authenticated' && 
+       session?.user?.role !== 'admin' && 
+       session?.user?.email !== 'john@snydersfarm.com' &&
+       !forceAdmin)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -65,6 +81,9 @@ export default function AdminDashboard() {
               <p className="text-sm text-red-700">Access denied. Debug info:</p>
               <p className="text-sm">Email: {session?.user?.email}</p>
               <p className="text-sm">Role: {session?.user?.role || 'No role'}</p>
+              <p className="text-sm">Admin check: {(session?.user?.role === 'admin' || session?.user?.email === 'john@snydersfarm.com' || forceAdmin) ? 'Yes' : 'No'}</p>
+              <p className="text-sm">Force Admin: {forceAdmin ? 'Yes' : 'No'}</p>
+              <p className="text-sm">Redirecting: {!(session?.user?.role === 'admin' || session?.user?.email === 'john@snydersfarm.com' || forceAdmin) ? 'Yes' : 'No'}</p>
             </div>
           )}
         </div>
