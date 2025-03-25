@@ -1,20 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 export default function EmailVerificationBanner() {
-  const { currentUser, sendVerificationEmail } = useAuth();
+  const { currentUser, sendVerificationEmail, reloadUser } = useAuth();
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [showBanner, setShowBanner] = useState(true);
+  const [checkingStatus, setCheckingStatus] = useState(false);
 
   // Check if user exists and if email is not verified
   const needsVerification = currentUser && !currentUser.emailVerified;
+
+  // Periodically check verification status after sending email
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isSuccess) {
+      interval = setInterval(async () => {
+        setCheckingStatus(true);
+        try {
+          await reloadUser();
+          if (currentUser?.emailVerified) {
+            clearInterval(interval);
+          }
+        } finally {
+          setCheckingStatus(false);
+        }
+      }, 5000); // Check every 5 seconds
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSuccess, currentUser, reloadUser]);
 
   // If email is verified or there's no user, or banner is dismissed, don't show the banner
   if (!needsVerification || !showBanner) {
@@ -49,9 +73,15 @@ export default function EmailVerificationBanner() {
             Your email is not verified. Please verify your email to access all platform features.
             
             {isSuccess && (
-              <p className="mt-2 text-green-600 font-medium">
-                Verification email sent! Please check your inbox.
-              </p>
+              <div className="mt-2">
+                <p className="text-green-600 font-medium flex items-center">
+                  {checkingStatus && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Verification email sent! Please check your inbox and click the verification link.
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  After clicking the link, refresh this page or wait for automatic verification.
+                </p>
+              </div>
             )}
             
             {error && (
@@ -64,7 +94,7 @@ export default function EmailVerificationBanner() {
           <div className="mt-3 space-x-2">
             <Button
               onClick={handleSendVerificationEmail}
-              disabled={isSending}
+              disabled={isSending || checkingStatus}
               variant="secondary"
               size="sm"
               className="bg-amber-100 text-amber-800 hover:bg-amber-200"
@@ -73,6 +103,11 @@ export default function EmailVerificationBanner() {
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Sending...
+                </>
+              ) : checkingStatus ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Checking...
                 </>
               ) : 'Send verification email'}
             </Button>

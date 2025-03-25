@@ -66,30 +66,25 @@ if (typeof window !== 'undefined') {
 }
 
 // Email verification functions
-export const sendVerificationEmail = async (continueUrl = `${process.env.NEXTAUTH_URL}/dashboard`, userEmail?: string) => {
+export const sendVerificationEmail = async (continueUrl?: string) => {
   try {
-    // If we don't have a current user, but have an email, try to get the user from the session
     const user = auth.currentUser;
     
     if (!user) {
-      if (!userEmail) {
-        throw new Error("No authenticated user found and no email provided");
-      }
-
-      // Log this for debugging
-      console.log("No Firebase user found in context, but email was provided:", userEmail);
-      console.log("Unable to send verification email without Firebase authentication");
-      
-      return { 
-        success: false, 
-        error: "User must be authenticated in Firebase to send verification email"
-      };
+      throw new Error("No authenticated user found");
     }
     
+    // Build an appropriate continue URL for your application
+    const actionCodeSettings = {
+      url: continueUrl || `${window.location.origin}/verify-success`,
+      handleCodeInApp: false // Set to false for email links
+    };
+    
+    console.log("Sending verification email to:", user.email);
+    console.log("With continue URL:", actionCodeSettings.url);
+    
     // Send verification email
-    await sendEmailVerification(user, {
-      url: continueUrl
-    });
+    await sendEmailVerification(user, actionCodeSettings);
     
     return { success: true };
   } catch (error) {

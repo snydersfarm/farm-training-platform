@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -8,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import EmailVerificationBanner from '@/components/EmailVerificationBanner'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
+import { toast } from '@/components/ui/use-toast'
 
 // Define SVG icon components to replace lucide-react
 const BookOpenIcon = ({ className }: { className?: string }) => (
@@ -62,6 +65,26 @@ function UserRoleDebug() {
 }
 
 export default function DashboardPage() {
+  const { reloadUser } = useAuth();
+  const searchParams = useSearchParams();
+  const verified = searchParams.get('verified');
+  
+  // If user is coming back from email verification
+  useEffect(() => {
+    if (verified === 'true') {
+      const checkVerification = async () => {
+        await reloadUser();
+        toast({
+          title: "Email verification",
+          description: "Thank you for verifying your email address.",
+          variant: "default",
+        });
+      };
+      
+      checkVerification();
+    }
+  }, [verified, reloadUser]);
+  
   return (
     <ProtectedRoute>
       <div className="container mx-auto px-4 py-8">

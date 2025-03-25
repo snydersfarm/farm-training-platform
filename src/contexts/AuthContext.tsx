@@ -23,6 +23,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  reloadUser: () => Promise<void>;
 }
 
 // Create the context with a default value
@@ -111,6 +112,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // Add the reloadUser function
+  const reloadUser = async () => {
+    if (currentUser) {
+      await currentUser.reload();
+      // Force component update by creating a new user object
+      setCurrentUser(Object.assign({}, auth.currentUser));
+    }
+  };
+
   const value: AuthContextType = {
     currentUser,
     isAdmin,
@@ -120,7 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     sendVerificationEmail,
-    resetPassword
+    resetPassword,
+    reloadUser
   };
 
   return (
