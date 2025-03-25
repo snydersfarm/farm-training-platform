@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import EmailVerificationBanner from '@/components/EmailVerificationBanner'
+import FirebaseAuthHandler from '@/components/FirebaseAuthHandler'
 import { useSession } from 'next-auth/react'
 
 // Define SVG icon components to replace lucide-react
@@ -52,6 +53,9 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Farm Training Dashboard</h1>
+      
+      {/* Firebase Auth Handler */}
+      <FirebaseAuthHandler />
       
       {/* Email Verification Banner */}
       <EmailVerificationBanner />

@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
     const data = await request.json().catch(() => ({}));
     const continueUrl = data.continueUrl || undefined;
     
-    // Send verification email
-    const result = await sendVerificationEmail(continueUrl);
+    // Send verification email, also passing the user's email
+    const result = await sendVerificationEmail(continueUrl, session.user.email || undefined);
     
     return NextResponse.json(result);
   } catch (error) {

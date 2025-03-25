@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { auth } from '@/lib/firebase';
 
 export default function EmailVerificationBanner() {
   const { data: session, update } = useSession();
@@ -11,9 +12,19 @@ export default function EmailVerificationBanner() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [showBanner, setShowBanner] = useState(true);
+  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
 
   // Check if user exists and if email is not verified
   const needsVerification = session?.user && !session.user.emailVerified;
+
+  // Check if Firebase auth is ready
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setIsFirebaseReady(!!user && user.email === session?.user?.email);
+    });
+
+    return () => unsubscribe();
+  }, [session]);
 
   // If email is verified or there's no user, or banner is dismissed, don't show the banner
   if (!needsVerification || !showBanner) {
@@ -26,6 +37,11 @@ export default function EmailVerificationBanner() {
     setIsSuccess(false);
 
     try {
+      // Check if Firebase is authenticated
+      if (!isFirebaseReady) {
+        throw new Error('Please authenticate with Firebase first using the banner above');
+      }
+
       const response = await fetch('/api/auth/verify-email/send', {
         method: 'POST',
         headers: {
@@ -38,7 +54,7 @@ export default function EmailVerificationBanner() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to send verification email');
       }
 
@@ -83,7 +99,7 @@ export default function EmailVerificationBanner() {
           <div className="mt-3 space-x-2">
             <Button
               onClick={sendVerificationEmail}
-              disabled={isSending}
+              disabled={isSending || !isFirebaseReady}
               variant="secondary"
               size="sm"
               className="bg-amber-100 text-amber-800 hover:bg-amber-200"
