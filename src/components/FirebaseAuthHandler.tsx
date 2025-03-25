@@ -49,7 +49,7 @@ export default function FirebaseAuthHandler() {
     }
   };
 
-  // Only show this component if Firebase auth isn't synced
+  // Only show this component if Firebase auth isn&apos;t synced
   if (isFirebaseAuth || !session?.user) return null;
 
   return (

@@ -21,12 +21,12 @@ export async function POST(request: NextRequest) {
       throw new Error(result.error || 'Failed to send reset email');
     }
     
-    // Always return success, even if the email doesn't exist for security reasons
+    // Always return success, even if the email doesn&apos;t exist for security reasons
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to send password reset email:', error);
     
-    // Still return success for security (don't want to leak if an email exists)
+    // Still return success for security (don&apos;t want to leak if an email exists)
     return NextResponse.json({ success: true });
   }
 } 

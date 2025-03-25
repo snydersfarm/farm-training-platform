@@ -26,7 +26,7 @@ export default function EmailVerificationBanner() {
     return () => unsubscribe();
   }, [session]);
 
-  // If email is verified or there's no user, or banner is dismissed, don't show the banner
+  // If email is verified or there&apos;s no user, or banner is dismissed, don&apos;t show the banner
   if (!needsVerification || !showBanner) {
     return null;
   }

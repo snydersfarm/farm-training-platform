@@ -191,7 +191,7 @@ export default function UsersManagement() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-yellow-700">
-                You don't have permission to access this page. Admin access required.
+                You don&apos;t have permission to access this page. Admin access required.
               </p>
             </div>
           </div>
