@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 export default function RequestPasswordResetPage() {
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -19,20 +22,7 @@ export default function RequestPasswordResetPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/reset-password/request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send reset email');
-      }
-
+      await resetPassword(email);
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -86,7 +76,12 @@ export default function RequestPasswordResetPage() {
               className="w-full" 
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : 'Send Reset Link'}
             </Button>
             
             <div className="text-center mt-4">

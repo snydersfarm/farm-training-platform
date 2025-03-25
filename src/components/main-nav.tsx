@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
-import { useSession, signOut } from 'next-auth/react'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,7 @@ const XIcon = () => (
 export function MainNav() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { data: session } = useSession()
+  const { currentUser, isAdmin, isManager, signOut } = useAuth()
 
   // Base routes available to all authenticated users
   const routes = [
@@ -111,7 +111,7 @@ export function MainNav() {
   ]
   
   // Admin route - only shown to admin users
-  if (session?.user?.role === 'admin') {
+  if (isAdmin) {
     routes.push({
       name: 'Admin',
       href: '/admin',
@@ -119,8 +119,8 @@ export function MainNav() {
     })
   }
 
-  const handleSignOut = () => {
-    signOut({ callbackUrl: '/' })
+  const handleSignOut = async () => {
+    await signOut()
   }
   
   return (
@@ -150,76 +150,71 @@ export function MainNav() {
         </div>
         
         {/* User Menu */}
-        <div className="flex items-center space-x-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="relative flex items-center gap-2 px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage 
-                    src="/placeholder.svg" 
-                    alt={`${session?.user?.name || 'User'} avatar`}
-                  />
-                  <AvatarFallback>{session?.user?.name?.substring(0, 2) || 'U'}</AvatarFallback>
-                </Avatar>
-                <span className="hidden sm:inline-block text-sm font-medium">
-                  {session?.user?.name?.split(' ')[0] || 'User'}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{session?.user?.name || 'User'}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {session?.user?.email || 'user@example.com'}
-                  </p>
-                  
-                  {/* Position and Department */}
-                  {(session?.user?.position || session?.user?.department) && (
-                    <p className="text-xs leading-none text-muted-foreground mt-1">
-                      {[session?.user?.position, session?.user?.department]
-                        .filter(Boolean)
-                        .join(' • ')}
+        {currentUser && (
+          <div className="flex items-center space-x-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="relative flex items-center gap-2 px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage 
+                      src="/placeholder.svg" 
+                      alt={`${currentUser.displayName || 'User'} avatar`}
+                    />
+                    <AvatarFallback>{currentUser.displayName?.substring(0, 2) || currentUser.email?.substring(0, 2) || 'U'}</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:inline-block text-sm font-medium">
+                    {currentUser.displayName?.split(' ')[0] || currentUser.email?.split('@')[0] || 'User'}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {currentUser.displayName || currentUser.email?.split('@')[0]}
                     </p>
-                  )}
-                  
-                  {/* Role badges */}
-                  {session?.user?.role === 'admin' && (
-                    <span className="mt-1 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                      Admin
-                    </span>
-                  )}
-                  {session?.user?.role === 'MANAGER' && (
-                    <span className="mt-1 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                      Manager
-                    </span>
-                  )}
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOutIcon />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <XIcon />
-            ) : (
-              <MenuIcon />
-            )}
-          </Button>
-        </div>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {currentUser.email}
+                    </p>
+                    
+                    {/* Role badges */}
+                    {isAdmin && (
+                      <span className="mt-1 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                        Admin
+                      </span>
+                    )}
+                    {isManager && !isAdmin && (
+                      <span className="mt-1 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                        Manager
+                      </span>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOutIcon />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <XIcon />
+              ) : (
+                <MenuIcon />
+              )}
+            </Button>
+          </div>
+        )}
       </div>
       
       {/* Mobile Navigation */}

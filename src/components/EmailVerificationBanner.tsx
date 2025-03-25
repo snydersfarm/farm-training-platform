@@ -1,69 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 export default function EmailVerificationBanner() {
-  const { data: session, update } = useSession();
+  const { currentUser, sendVerificationEmail } = useAuth();
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [showBanner, setShowBanner] = useState(true);
-  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
 
   // Check if user exists and if email is not verified
-  const needsVerification = session?.user && !session.user.emailVerified;
+  const needsVerification = currentUser && !currentUser.emailVerified;
 
-  // Check if Firebase auth is ready
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setIsFirebaseReady(!!user && user.email === session?.user?.email);
-    });
-
-    return () => unsubscribe();
-  }, [session]);
-
-  // If email is verified or there&apos;s no user, or banner is dismissed, don&apos;t show the banner
+  // If email is verified or there's no user, or banner is dismissed, don't show the banner
   if (!needsVerification || !showBanner) {
     return null;
   }
 
-  const sendVerificationEmail = async () => {
+  const handleSendVerificationEmail = async () => {
     setIsSending(true);
     setError('');
     setIsSuccess(false);
 
     try {
-      // Check if Firebase is authenticated
-      if (!isFirebaseReady) {
-        throw new Error('Please authenticate with Firebase first using the banner above');
-      }
-
-      const response = await fetch('/api/auth/verify-email/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          continueUrl: window.location.origin + '/verify-email'
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to send verification email');
-      }
-
+      await sendVerificationEmail();
       setIsSuccess(true);
-      
-      // After 5 seconds, refresh the session to check if email is verified
-      setTimeout(() => {
-        update();
-      }, 5000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send verification email');
     } finally {
@@ -98,13 +63,18 @@ export default function EmailVerificationBanner() {
           
           <div className="mt-3 space-x-2">
             <Button
-              onClick={sendVerificationEmail}
-              disabled={isSending || !isFirebaseReady}
+              onClick={handleSendVerificationEmail}
+              disabled={isSending}
               variant="secondary"
               size="sm"
               className="bg-amber-100 text-amber-800 hover:bg-amber-200"
             >
-              {isSending ? 'Sending...' : 'Send verification email'}
+              {isSending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : 'Send verification email'}
             </Button>
             
             <Button
