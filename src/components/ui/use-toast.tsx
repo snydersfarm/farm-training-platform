@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 // Toast types
 export type ToastVariant = 'default' | 'success' | 'destructive';
@@ -19,6 +19,10 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | null>(null);
 
+// Global event system for standalone toast
+const TOAST_EVENT = 'toast-event';
+type ToastEvent = CustomEvent<ToastProps>;
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([]);
 
@@ -35,6 +39,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
+
+  // Listen for global toast events
+  useEffect(() => {
+    const handleToast = (event: ToastEvent) => {
+      toast(event.detail);
+    };
+
+    window.addEventListener(TOAST_EVENT, handleToast as EventListener);
+    return () => {
+      window.removeEventListener(TOAST_EVENT, handleToast as EventListener);
+    };
+  }, []);
 
   return (
     <ToastContext.Provider value={{ toast }}>
@@ -77,12 +93,10 @@ export function useToast() {
   return context;
 }
 
+// Standalone toast function that uses custom events
 export function toast(props: ToastProps) {
-  // This is a convenience function that can be called directly
-  // It will throw if used outside of a ToastProvider
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context.toast(props);
+  const event = new CustomEvent<ToastProps>(TOAST_EVENT, {
+    detail: props,
+  });
+  window.dispatchEvent(event);
 } 
