@@ -37,6 +37,11 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Authentication failed');
           }
 
+          // Check if email is verified
+          if (!user.emailVerified) {
+            throw new Error('Please verify your email before signing in');
+          }
+
           // Map Firebase user to NextAuth user
           return {
             id: user.uid,
@@ -48,7 +53,20 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error: any) {
           console.error('Authentication error:', error);
-          throw new Error(error.message || 'Authentication failed');
+          
+          // Handle specific Firebase errors
+          switch (error.code) {
+            case 'auth/invalid-email':
+              throw new Error('Invalid email address');
+            case 'auth/user-disabled':
+              throw new Error('This account has been disabled');
+            case 'auth/user-not-found':
+              throw new Error('No account found with this email');
+            case 'auth/wrong-password':
+              throw new Error('Incorrect password');
+            default:
+              throw new Error('Authentication failed. Please try again.');
+          }
         }
       }
     })
@@ -56,20 +74,41 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/login',
     error: '/auth/error',
+    signOut: '/login',
   },
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user }) {
-      // Pass additional user properties to the token
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.emailVerified = user.emailVerified;
+    async jwt({ token, user, account }) {
+      // Initial sign in
+      if (account && user) {
+        return {
+          ...token,
+          id: user.id,
+          role: user.role,
+          emailVerified: user.emailVerified,
+          accessToken: account.access_token,
+          accessTokenExpires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+        };
       }
-      return token;
+      
+      // Return previous token if the access token has not expired yet
+      if (Date.now() < (token.accessTokenExpires as number)) {
+        return token;
+      }
+
+      // Access token has expired, try to refresh it
+      try {
+        // Here you would typically refresh the token
+        // For now, we'll just return the token as is
+        return token;
+      } catch (error) {
+        console.error('Error refreshing access token', error);
+        return { ...token, error: 'RefreshAccessTokenError' };
+      }
     },
     async session({ session, token }) {
       // Pass token properties to the session
@@ -78,8 +117,25 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as 'admin' | 'user';
         session.user.emailVerified = token.emailVerified as Date | null;
       }
+      
+      // Add error to session if token refresh failed
+      if (token.error) {
+        session.error = token.error;
+      }
+      
       return session;
     }
+  },
+  events: {
+    async signIn(message) {
+      console.log('User signed in:', message);
+    },
+    async signOut(message) {
+      console.log('User signed out:', message);
+    },
+    async session(message) {
+      console.log('Session updated:', message);
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
