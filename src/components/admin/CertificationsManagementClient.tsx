@@ -1,263 +1,111 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { CalendarIcon, PlusIcon, RefreshCwIcon, DownloadIcon } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface Certification {
   id: string;
   name: string;
   description: string;
-  moduleId: string;
-  module: {
-    title: string;
-  };
-  userId: string;
-  user: {
-    name: string;
-    email: string;
-    department: string;
-    position: string;
-  };
-  issuedAt: string;
-  expiresAt: string | null;
-  pdfUrl: string | null;
+  requirements: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export function CertificationsManagementClient() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [certifications, setCertifications] = useState<Certification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [forceAdmin, setForceAdmin] = useState(false);
-  
-  // Check for forced admin access (client-side only)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasForceAdmin = localStorage.getItem('forceAdmin') === 'true';
-      setForceAdmin(hasForceAdmin);
-    }
-  }, []);
-  
-  // Check if the user is admin
-  useEffect(() => {
-    if (status === 'authenticated' && 
-        session?.user?.role !== 'ADMIN' && 
-        session?.user?.email !== 'john@snydersfarm.com' &&
-        !forceAdmin) {
-      // Redirect non-admin users to the dashboard
-      router.push('/dashboard');
-    } else if (status === 'unauthenticated') {
-      // Redirect unauthenticated users to login
-      router.push('/login');
-    }
-  }, [status, session, router, forceAdmin]);
-  
-  // Fetch certifications when authenticated as admin
-  useEffect(() => {
-    if (status === 'authenticated' && 
-       (session?.user?.role === 'ADMIN' || 
-        session?.user?.email === 'john@snydersfarm.com' || 
-        forceAdmin)) {
-      fetchCertifications();
-    }
-  }, [status, session, forceAdmin]);
-  
-  const fetchCertifications = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/certifications');
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch certifications');
-      }
-      
-      setCertifications(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch certifications');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { toast } = useToast();
 
-  const isExpired = (expiresAt: string | null) => {
-    if (!expiresAt) return false;
-    return new Date(expiresAt) < new Date();
-  };
-
-  const isExpiringSoon = (expiresAt: string | null) => {
-    if (!expiresAt) return false;
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    return new Date(expiresAt) < thirtyDaysFromNow && !isExpired(expiresAt);
-  };
-
-  const revokeCertificate = async (id: string) => {
-    try {
-      const response = await fetch(`/api/certifications/${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
+  useEffect(() => {
+    const fetchCertifications = async () => {
+      try {
+        const response = await fetch('/api/admin/certifications');
+        if (!response.ok) {
+          throw new Error('Failed to fetch certifications');
+        }
         const data = await response.json();
-        throw new Error(data.message || 'Failed to revoke certificate');
+        setCertifications(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch certifications');
+        toast({
+          title: 'Error',
+          description: 'Failed to load certifications',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
       }
-      
-      // Refresh the list
+    };
+
+    if (status === 'authenticated') {
       fetchCertifications();
-    } catch (err) {
-      console.error('Error revoking certificate:', err);
-      // You might want to show an error toast here
     }
-  };
+  }, [status, toast]);
 
-  const getStatusBadge = (expiresAt: string | null) => {
-    if (isExpired(expiresAt)) {
-      return <Badge variant="destructive">Expired</Badge>;
-    }
-    if (isExpiringSoon(expiresAt)) {
-      return <Badge variant="warning">Expiring Soon</Badge>;
-    }
-    return <Badge variant="success">Valid</Badge>;
-  };
-
-  if (status === 'loading') {
+  if (status === 'loading' || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg font-medium">Loading...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
-  if (status === 'unauthenticated' || (session?.user?.role !== 'ADMIN' && !forceAdmin)) {
-    return null;
+  if (status === 'unauthenticated') {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
+        <p>Please sign in to access this page.</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-2xl font-bold mb-4">Error</h2>
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Certifications Management</h1>
-        <div className="flex gap-2">
-          <Button onClick={fetchCertifications} variant="outline">
-            <RefreshCwIcon className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Issue New Certificate
-          </Button>
-        </div>
+        <Button>Add New Certification</Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Certifications</CardTitle>
-          <CardDescription>
-            Manage and track all issued certifications
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : error ? (
-            <div className="text-red-500 text-center py-8">{error}</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Module</TableHead>
-                    <TableHead>Issued</TableHead>
-                    <TableHead>Expires</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {certifications.map((cert) => (
-                    <TableRow key={cert.id}>
-                      <TableCell className="font-medium">{cert.name}</TableCell>
-                      <TableCell>
-                        <div>
-                          <div>{cert.user.name}</div>
-                          <div className="text-sm text-gray-500">{cert.user.email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{cert.module.title}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <CalendarIcon className="h-4 w-4 mr-1" />
-                          {format(new Date(cert.issuedAt), 'MMM d, yyyy')}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {cert.expiresAt ? (
-                          <div className="flex items-center">
-                            <CalendarIcon className="h-4 w-4 mr-1" />
-                            {format(new Date(cert.expiresAt), 'MMM d, yyyy')}
-                          </div>
-                        ) : (
-                          'Never'
-                        )}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(cert.expiresAt)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {cert.pdfUrl && (
-                            <Button variant="outline" size="sm" asChild>
-                              <a href={cert.pdfUrl} target="_blank" rel="noopener noreferrer">
-                                <DownloadIcon className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          )}
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => revokeCertificate(cert.id)}
-                          >
-                            Revoke
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {certifications.map((certification) => (
+          <Card key={certification.id}>
+            <CardHeader>
+              <CardTitle>{certification.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-500 mb-4">{certification.description}</p>
+              <div className="space-y-2">
+                <h4 className="font-medium">Requirements:</h4>
+                <ul className="list-disc list-inside text-sm">
+                  {certification.requirements.map((req, index) => (
+                    <li key={index}>{req}</li>
                   ))}
-                  {certifications.length === 0 && !isLoading && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
-                        No certifications found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </ul>
+              </div>
+              <div className="mt-4 flex justify-end space-x-2">
+                <Button variant="outline" size="sm">Edit</Button>
+                <Button variant="destructive" size="sm">Delete</Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 } 
