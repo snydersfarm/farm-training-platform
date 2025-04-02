@@ -9,11 +9,6 @@ datasource db {
   directUrl    = env("DIRECT_URL")
   relationMode = "prisma"
   extensions   = [pgcrypto]
-  pool {
-    min = 1
-    max = 5
-    idleTimeoutMillis = 20000
-  }
 }
 
 enum UserRole {
