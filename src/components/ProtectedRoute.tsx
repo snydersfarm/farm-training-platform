@@ -20,22 +20,31 @@ export default function ProtectedRoute({
   const router = useRouter();
 
   useEffect(() => {
+    console.log('ProtectedRoute state:', {
+      loading,
+      currentUser: currentUser?.email,
+      isAdmin,
+      isManager,
+      requireAdmin,
+      requireManager
+    });
+
     if (!loading) {
       if (!currentUser) {
-        // User not logged in, redirect to login
+        console.log('No user found, redirecting to login');
         router.push('/login');
       } else if (requireAdmin && !isAdmin) {
-        // User not admin, redirect to dashboard
+        console.log('Admin required but user is not admin, redirecting to dashboard');
         router.push('/dashboard');
       } else if (requireManager && !isManager) {
-        // User not manager or admin, redirect to dashboard
+        console.log('Manager required but user is not manager, redirecting to dashboard');
         router.push('/dashboard');
       }
     }
   }, [currentUser, loading, router, requireAdmin, requireManager, isAdmin, isManager]);
 
-  // Show loading state
-  if (loading || (!currentUser) || (requireAdmin && !isAdmin) || (requireManager && !isManager)) {
+  // Show loading state only while loading
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -44,6 +53,21 @@ export default function ProtectedRoute({
         </div>
       </div>
     );
+  }
+
+  // If not loading and no user, don't render anything (will redirect in useEffect)
+  if (!currentUser) {
+    return null;
+  }
+
+  // If admin required but not admin, don't render anything (will redirect in useEffect)
+  if (requireAdmin && !isAdmin) {
+    return null;
+  }
+
+  // If manager required but not manager, don't render anything (will redirect in useEffect)
+  if (requireManager && !isManager) {
+    return null;
   }
 
   // Render children if authenticated and has required role
