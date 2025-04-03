@@ -20,7 +20,7 @@ interface Report {
   error?: string;
 }
 
-export default function ReportsManagementClient() {
+export function ReportsManagementClient() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [reports, setReports] = useState<Report[]>([]);

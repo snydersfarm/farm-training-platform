@@ -32,7 +32,7 @@ interface Certification {
   status: 'active' | 'expired' | 'revoked';
 }
 
-export default function CertificationIssueClient() {
+export function CertificationIssueClient() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
