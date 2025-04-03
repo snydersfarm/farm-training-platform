@@ -15,6 +15,7 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
   
   // Get callbackUrl from query params
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
@@ -27,6 +28,19 @@ function LoginForm() {
     }
   }, [currentUser, router, callbackUrl]);
 
+  // Handle successful login
+  useEffect(() => {
+    if (loginSuccess) {
+      console.log('Login successful, redirecting to:', callbackUrl);
+      // Use a timeout to ensure the auth state is updated before redirecting
+      const redirectTimer = setTimeout(() => {
+        window.location.href = callbackUrl;
+      }, 500);
+      
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [loginSuccess, callbackUrl]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
@@ -36,11 +50,9 @@ function LoginForm() {
 
     try {
       console.log('Calling signIn function...');
-      const user = await signIn(email, password);
-      console.log('Sign in successful, redirecting to:', callbackUrl);
-      
-      // Force a hard navigation to ensure the app state is reset
-      window.location.href = callbackUrl;
+      await signIn(email, password);
+      console.log('Sign in successful');
+      setLoginSuccess(true);
     } catch (err: any) {
       console.error('Login error:', err);
       console.error('Error code:', err.code);
