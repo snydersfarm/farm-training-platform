@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRouteHandler, successResponse, errorResponse } from '../route-helpers';
 import { z } from 'zod';
 import { hash } from 'bcryptjs';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 
-// Zod schema for user creation/update with more fields
+// Zod schema for user creation/update
 const UserSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email(),
@@ -16,6 +16,18 @@ const UserSchema = z.object({
   department: z.string().optional(),
   position: z.string().optional()
 });
+
+// Helper for Prisma connection
+async function withPrisma<T>(callback: (prisma: any) => Promise<T>): Promise<T> {
+  const { PrismaClient } = require('@prisma/client');
+  const prisma = new PrismaClient();
+  
+  try {
+    return await callback(prisma);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
 
 // GET /api/users - Get all users
 export async function GET(request: NextRequest) {
@@ -93,7 +105,7 @@ export async function POST(request: NextRequest) {
       try {
         const newUser = await prisma.user.create({
           data: {
-            id: firebaseUser.uid, // Use Firebase UID for consistency
+            id: firebaseUser.uid,
             name,
             email,
             password: hashedPassword,
@@ -115,8 +127,6 @@ export async function POST(request: NextRequest) {
         return successResponse(newUser, 'User created successfully');
       } catch (dbError: any) {
         console.error('Database user creation error:', dbError);
-        // If the database operation fails, we should ideally delete the Firebase user
-        // but we'll leave it for now for simplicity
         return errorResponse(
           'User created in authentication system but failed to create in database',
           500
@@ -126,21 +136,8 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('User creation error:', error);
     if (error.errors) {
-      // Zod validation error
       return errorResponse(`Validation error: ${JSON.stringify(error.errors)}`, 400);
     }
     return errorResponse(error.message || 'Failed to create user', 500);
-  }
-}
-
-// Helper for Prisma connection
-async function withPrisma<T>(callback: (prisma: any) => Promise<T>): Promise<T> {
-  const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
-  
-  try {
-    return await callback(prisma);
-  } finally {
-    await prisma.$disconnect();
   }
 } 
