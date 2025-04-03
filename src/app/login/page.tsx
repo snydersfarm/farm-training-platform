@@ -31,11 +31,17 @@ function LoginForm() {
     setIsLoading(true);
     setError('');
 
+    console.log('Attempting login with:', { email }); // Log email (not password for security)
+
     try {
+      console.log('Calling signIn function...');
       await signIn(email, password);
+      console.log('Sign in successful, redirecting to:', callbackUrl);
       router.push(callbackUrl);
     } catch (err: any) {
       console.error('Login error:', err);
+      console.error('Error code:', err.code);
+      console.error('Error message:', err.message);
       
       // Format Firebase errors to be more user-friendly
       if (err instanceof FirebaseError) {
@@ -91,7 +97,7 @@ function LoginForm() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-gray-900"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -120,7 +126,7 @@ function LoginForm() {
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-gray-900"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
