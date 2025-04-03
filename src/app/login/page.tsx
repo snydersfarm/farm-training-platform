@@ -22,6 +22,7 @@ function LoginForm() {
   // Redirect if already authenticated
   useEffect(() => {
     if (currentUser) {
+      console.log('User already authenticated, redirecting to:', callbackUrl);
       router.push(callbackUrl);
     }
   }, [currentUser, router, callbackUrl]);
@@ -35,9 +36,11 @@ function LoginForm() {
 
     try {
       console.log('Calling signIn function...');
-      await signIn(email, password);
+      const user = await signIn(email, password);
       console.log('Sign in successful, redirecting to:', callbackUrl);
-      router.push(callbackUrl);
+      
+      // Force a hard navigation to ensure the app state is reset
+      window.location.href = callbackUrl;
     } catch (err: any) {
       console.error('Login error:', err);
       console.error('Error code:', err.code);
