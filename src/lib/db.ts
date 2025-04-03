@@ -3,13 +3,26 @@ import { PrismaClient } from '@prisma/client';
 // Log the database URL configuration (without sensitive information)
 const dbUrl = process.env.DATABASE_URL;
 if (dbUrl) {
+  // Create a safe URL for logging (remove credentials)
   const safeUrl = dbUrl.replace(/(?<=:\/\/)[^@]+@/, '****:****@');
-  console.log('Database URL configuration:', {
-    hasPoolTimeout: dbUrl.includes('pool_timeout'),
-    hasConnectionLimit: dbUrl.includes('connection_limit'),
-    hasStatementTimeout: dbUrl.includes('statement_timeout'),
-    url: safeUrl
-  });
+  
+  // Parse the URL to check parameters
+  try {
+    const url = new URL(dbUrl);
+    const params = new URLSearchParams(url.search);
+    
+    console.log('Database URL Analysis:', {
+      hasPoolTimeout: params.has('pool_timeout'),
+      hasConnectionLimit: params.has('connection_limit'),
+      hasStatementTimeout: params.has('statement_timeout'),
+      poolTimeout: params.get('pool_timeout'),
+      connectionLimit: params.get('connection_limit'),
+      statementTimeout: params.get('statement_timeout'),
+      url: safeUrl
+    });
+  } catch (error) {
+    console.error('Error parsing DATABASE_URL:', error);
+  }
 }
 
 const globalForPrisma = globalThis as unknown as {
